@@ -1,26 +1,38 @@
-/* public/style.css */
+/* public/style.css (UPDATED) */
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f2f5;
     color: #333;
     margin: 0;
-    padding: 20px;
+    padding: 10px; /* Mobile အတွက် padding ထည့်ထား */
 }
 
 .admin-container {
-    max-width: 1200px;
+    max-width: 1400px; /* နည်းနည်း ပိုကျယ်ထား */
     margin: 0 auto;
     background-color: #ffffff;
-    padding: 20px;
+    padding: 15px; /* Mobile အတွက် padding */
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Mobile မှာ အောက်ဆင်းအောင် */
+    gap: 10px;
 }
 
 h1, h2 {
     color: #111;
     border-bottom: 2px solid #eee;
     padding-bottom: 10px;
+    margin-bottom: 1rem;
 }
+
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.5rem; }
 
 /* Form Styles */
 .match-form {
@@ -35,66 +47,106 @@ h1, h2 {
     gap: 15px;
     margin-bottom: 15px;
 }
-.form-group input[name="stream_url"] {
-    grid-column: 1 / -1; /* Stream URL ကို အတန်းလိုက် အပြည့် ယူမယ် */
-}
-.match-form input {
+.form-group input {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    box-sizing: border-box; /* Padding ကြောင့် width မကျော်အောင် */
+    box-sizing: border-box; 
 }
-.match-form button {
+.form-group input[name="stream_url"],
+.form-group input[name="team_a_logo"],
+.form-group input[name="team_b_logo"] {
+    grid-column: 1 / -1; /* Mobile မှာ ပုံမှန် 1 column ဖြစ်နေလို့ 2 column မှာပဲ သတ်မှတ် */
+}
+
+.match-form button, .btn {
     background-color: #007bff;
     color: white;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
 }
 .match-form button:hover {
     background-color: #0056b3;
 }
+.btn-cancel { background-color: #6c757d; }
+.btn-cancel:hover { background-color: #5a6268; }
 
-/* Table Styles */
+/* Table Wrapper (Mobile Responsive) */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto; /* ဖုန်းမှာ ဘေးတိုက် scroll လို့ရအောင် */
+}
+
 .match-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px; /* အနည်းဆုံး အကျယ် သတ်မှတ်ထားမှ scroll လို့ အဆင်ပြေမယ် */
 }
 .match-table th,
 .match-table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
+    vertical-align: middle;
 }
-.match-table th {
-    background-color: #f7f7f7;
+.match-table th { background-color: #f7f7f7; }
+
+.match-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-.status-live {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-weight: bold;
+.match-cell img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
 }
-.status-offline {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-weight: bold;
+
+.status-live { background-color: #d4edda; color: #155724; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
+.status-offline { background-color: #f8d7da; color: #721c24; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
+
+.actions {
+    display: flex;
+    flex-wrap: wrap; /* Button တွေ အောက်ဆင်းသွားအောင် */
+    gap: 5px;
 }
 .actions .btn {
-    text-decoration: none;
-    color: white;
     padding: 6px 10px;
-    border-radius: 4px;
-    margin-right: 5px;
-    font-size: 14px;
+    font-size: 0.9rem;
 }
-.btn-toggle { background-color: #ffc107; }
+.btn-toggle { background-color: #ffc107; color: #333; }
 .btn-toggle:hover { background-color: #e0a800; }
 .btn-delete { background-color: #dc3545; }
 .btn-delete:hover { background-color: #c82333; }
+.btn-edit { background-color: #17a2b8; }
+.btn-edit:hover { background-color: #138496; }
+.btn-logout { background-color: #dc3545; }
+
+
+/* --- Mobile Responsive (အရေးကြီး) --- */
+@media (max-width: 768px) {
+    body { padding: 5px; }
+    .admin-container { padding: 10px; }
+    .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .admin-header h1 { font-size: 1.5rem; }
+    .btn-logout { text-align: center; }
+
+    .form-group {
+        grid-template-columns: 1fr; /* Form တွေကို 1 column ပြောင်းမယ် */
+    }
+    .form-group input[name="stream_url"],
+    .form-group input[name="team_a_logo"],
+    .form-group input[name="team_b_logo"] {
+        grid-column: 1 / -1; /* 1 column မှာမို့ ဒါ မလိုတော့ပါ */
+    }
+}

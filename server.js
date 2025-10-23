@@ -1,94 +1,167 @@
-// server.js
+// server.js (UPDATED)
 const express = require('express');
 const bodyParser = require('body-parser');
-const db = require('./database.js'); // Database ကို import လုပ်ခြင်း
+const db = require('./database.js');
+const session = require('express-session'); // <-- အသစ်ထပ်ထည့်သည်
 
 const app = express();
 const PORT = 3000;
 
-// EJS ကို template engine အဖြစ် သတ်မှတ်ခြင်း
+// --- Admin Login Credentials ---
+// (လုံခြုံရေးအတွက် ဒီနေရာက username/password ကို ပြောင်းပါ)
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'password123';
+
+// EJS
 app.set('view engine', 'ejs');
-// 'views' folder ထဲက ဖိုင်တွေကို ရှာခိုင်းခြင်း
 app.set('views', './views');
 
-// Form ကနေ ပို့လိုက်တဲ့ data တွေကို နားလည်အောင် (Parse) လုပ်ခြင်း
+// Body Parser
 app.use(bodyParser.urlencoded({ extended: true }));
-// 'public' folder ကို သုံးစွဲသူကို တိုက်ရိုက် ပြသခွင့်ပေးခြင်း
+// Static Folder (public)
 app.use(express.static('public'));
 
-// --- Admin Panel Routes ---
+// --- Session Middleware (အသစ်ထပ်ထည့်သည်) ---
+app.use(session({
+    secret: 'YOUR_VERY_STRONG_SECRET_KEY', // (ဒီစာတန်းကို ပြောင်းလိုက်ပါ)
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+}));
 
-// Admin Panel ပင်မ စာမျက်နှာ (GET request)
-// Database ထဲက ပွဲစဉ်အားလုံးကို ဆွဲထုတ်ပြီး 'admin.ejs' ကို ပြပေးမယ်
-app.get('/admin', (req, res) => {
+// --- Authentication Middleware (အသစ်ထပ်ထည့်သည်) ---
+const checkAuth = (req, res, next) => {
+    if (req.session.loggedin) {
+        // Login ဝင်ထားရင် ဆက်သွားခွင့်ပြုမယ်
+        next();
+    } else {
+        // Login မဝင်ထားရင် /login page ကို ပို့မယ်
+        res.redirect('/login');
+    }
+};
+
+// --- Login & Logout Routes (အသစ်ထပ်ထည့်သည်) ---
+
+// Login page ကို ပြသခြင်း
+app.get('/login', (req, res) => {
+    res.render('login', { error: null });
+});
+
+// Login ဝင်မဝင် စစ်ဆေးခြင်း
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+        // Login အောင်မြင်ရင် session ကို မှတ်ထားမယ်
+        req.session.loggedin = true;
+        res.redirect('/admin');
+    } else {
+        // Login မအောင်မြင်ရင်
+        res.render('login', { error: 'Invalid username or password' });
+    }
+});
+
+// Logout လုပ်ခြင်း
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        res.redirect('/login');
+    });
+});
+
+
+// --- Admin Panel Routes (အားလုံးကို checkAuth ဖြင့် ကာကွယ်ထားသည်) ---
+
+// Admin Panel ပင်မ စာမျက်နှာ (checkAuth ထည့်ထား)
+app.get('/admin', checkAuth, (req, res) => {
     const sql = "SELECT * FROM matches ORDER BY match_time DESC";
     db.all(sql, [], (err, rows) => {
         if (err) {
             return console.error(err.message);
         }
-        // 'admin.ejs' ကို render လုပ်ပြီး 'matches' data ကို ထည့်ပေးလိုက်မယ်
         res.render('admin', { matches: rows });
     });
 });
 
-// ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (POST request)
-app.post('/admin/add_match', (req, res) => {
-    // Form ကနေ ပို့လိုက်တဲ့ data တွေ
-    // ===== MODIFIED START =====
+// ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (checkAuth ထည့်ထား)
+app.post('/admin/add_match', checkAuth, (req, res) => {
     const { team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo } = req.body;
-    
     const sql = `INSERT INTO matches (team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo, is_live) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 0)`; // Default is_live = 0
-    
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0)`;
     db.run(sql, [team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo], (err) => {
-    // ===== MODIFIED END =====
-        if (err) {
-            return console.error(err.message);
-        }
-        console.log("A new match has been added.");
-        // ပွဲစဉ်ထည့်ပြီးရင် Admin page ကို ပြန်သွားမယ်
+        if (err) { return console.error(err.message); }
         res.redirect('/admin');
     });
 });
 
-// ပွဲစဉ်ကို Live/Not Live ပြောင်းခြင်း (GET request)
-app.get('/admin/toggle_live/:id', (req, res) => {
+// --- Edit Routes (အသစ်ထပ်ထည့်သည်) ---
+
+// Edit page ကို ပြသခြင်း (checkAuth ထည့်ထား)
+app.get('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
-    
-    // လက်ရှိ is_live တန်ဖိုးကို အရင်ရှာမယ်
-    db.get("SELECT is_live FROM matches WHERE id = ?", [id], (err, row) => {
+    const sql = "SELECT * FROM matches WHERE id = ?";
+    db.get(sql, [id], (err, row) => {
         if (err) {
             return console.error(err.message);
         }
-        
-        // 0 ဖြစ်ရင် 1 ပြောင်း၊ 1 ဖြစ်ရင် 0 ပြောင်း
+        if (!row) {
+            return res.redirect('/admin'); // Match မရှိရင် admin page ပြန်ပို့
+        }
+        // 'edit.ejs' ကို render လုပ်ပြီး 'match' data ကို ထည့်ပေးလိုက်မယ်
+        res.render('edit', { match: row });
+    });
+});
+
+// Edit data တွေကို Update လုပ်ခြင်း (checkAuth ထည့်ထား)
+app.post('/admin/edit/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    const { team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo } = req.body;
+    
+    const sql = `UPDATE matches SET 
+                    team_a = ?, 
+                    team_b = ?, 
+                    league = ?, 
+                    match_time = ?, 
+                    stream_url = ?, 
+                    team_a_logo = ?, 
+                    team_b_logo = ? 
+                 WHERE id = ?`;
+                 
+    db.run(sql, [team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo, id], (err) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log(`Match ${id} has been updated.`);
+        res.redirect('/admin');
+    });
+});
+
+// --- Toggle & Delete Routes (checkAuth ထည့်ထား) ---
+
+// ပွဲစဉ်ကို Live/Not Live ပြောင်းခြင်း
+app.get('/admin/toggle_live/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    db.get("SELECT is_live FROM matches WHERE id = ?", [id], (err, row) => {
+        if (err) { return console.error(err.message); }
         const newLiveStatus = row.is_live === 0 ? 1 : 0; 
-        
         const updateSql = "UPDATE matches SET is_live = ? WHERE id = ?";
         db.run(updateSql, [newLiveStatus, id], (err) => {
-            if (err) {
-                return console.error(err.message);
-            }
+            if (err) { return console.error(err.message); }
             res.redirect('/admin');
         });
     });
 });
 
-// ပွဲစဉ်ကို ဖျက်ခြင်း (GET request)
-app.get('/admin/delete/:id', (req, res) => {
+// ပွဲစဉ်ကို ဖျက်ခြင်း
+app.get('/admin/delete/:id', checkAuth, (req, res) => {
     const id = req.params.id;
     const sql = "DELETE FROM matches WHERE id = ?";
     db.run(sql, [id], (err) => {
-        if (err) {
-            return console.error(err.message);
-        }
+        if (err) { return console.error(err.message); }
         res.redirect('/admin');
     });
 });
 
 
-// --- Public API Route (User Website အတွက်) ---
-// User တွေက ဒီ link ကို ခေါ်ပြီး "Live" ဖြစ်နေတဲ့ ပွဲစဉ်တွေကို ယူရမယ်
+// --- Public API Route (ဒါက Login မလိုပါ) ---
 app.get('/api/live_matches', (req, res) => {
     const sql = "SELECT * FROM matches WHERE is_live = 1";
     db.all(sql, [], (err, rows) => {
@@ -96,7 +169,7 @@ app.get('/api/live_matches', (req, res) => {
             res.status(500).json({ error: err.message });
             return;
         }
-        res.json(rows); // Data ကို JSON ပုံစံနဲ့ ပြန်ပေးမယ်
+        res.json(rows);
     });
 });
 
@@ -104,6 +177,6 @@ app.get('/api/live_matches', (req, res) => {
 // Server ကို စတင် Run ခြင်း
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
-    console.log(`Admin Panel: http://localhost:${PORT}/admin`);
+    // Admin login page ကို ညွှန်းပါ
+    console.log(`Admin Panel: http://localhost:${PORT}/login`);
 });
-

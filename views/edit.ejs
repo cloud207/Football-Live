@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Match</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Edit Match</h1>
+        
+        <form action="/admin/edit/<%= match.id %>" method="POST" class="match-form">
+            <div class="form-group">
+                <input type="text" name="team_a" placeholder="Team A" required value="<%= match.team_a %>">
+                <input type="text" name="team_b" placeholder="Team B" required value="<%= match.team_b %>">
+            </div>
+            <div class="form-group">
+                <input type="text" name="league" placeholder="League Name" value="<%= match.league %>">
+                <input type="text" name="match_time" required value="<%= match.match_time %>" 
+                       onfocus="(this.type='datetime-local')" onblur="(this.type='text')">
+            </div>
+            <div class="form-group">
+                <input type="text" name="team_a_logo" placeholder="Team A Logo URL" value="<%= match.team_a_logo %>">
+                <input type="text" name="team_b_logo" placeholder="Team B Logo URL" value="<%= match.team_b_logo %>">
+            </div>
+            <div class="form-group">
+                <input type="text" name="stream_url" placeholder="Stream URL (.m3u8)" required value="<%= match.stream_url %>">
+            </div>
+            <button type="submit">Update Match</button>
+            <a href="/admin" class="btn btn-cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
