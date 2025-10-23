@@ -9,6 +9,24 @@
 <body>
     <div class="admin-container">
         <h1>Edit Match</h1>
+
+        <%
+            // Database က JSON string ကို JavaScript object array အဖြစ် ပြောင်းမယ်
+            let streams = [];
+            try {
+                if (match.stream_urls) {
+                    streams = JSON.parse(match.stream_urls);
+                }
+            } catch (e) {
+                console.error('Invalid stream JSON:', match.stream_urls);
+            }
+
+            // stream တွေကို index နဲ့ ခွဲထုတ်ထားမယ် (မရှိရင် empty object)
+            const stream1 = streams[0] || {};
+            const stream2 = streams[1] || {};
+            const stream3 = streams[2] || {};
+            const stream4 = streams[3] || {};
+        %>
         
         <form action="/admin/edit/<%= match.id %>" method="POST" class="match-form">
             <div class="form-group">
@@ -24,9 +42,25 @@
                 <input type="text" name="team_a_logo" placeholder="Team A Logo URL" value="<%= match.team_a_logo %>">
                 <input type="text" name="team_b_logo" placeholder="Team B Logo URL" value="<%= match.team_b_logo %>">
             </div>
-            <div class="form-group">
-                <input type="text" name="stream_url" placeholder="Stream URL (.m3u8)" required value="<%= match.stream_url %>">
+            
+            <h3 class="stream-header">Stream Sources</h3>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_1_name" placeholder="Stream 1 Name" value="<%= stream1.name || '' %>">
+                <input type="text" name="stream_1_url" placeholder="Stream 1 URL (.m3u8)" required value="<%= stream1.url || '' %>">
             </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_2_name" placeholder="Stream 2 Name" value="<%= stream2.name || '' %>">
+                <input type="text" name="stream_2_url" placeholder="Stream 2 URL (.m3u8)" value="<%= stream2.url || '' %>">
+            </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_3_name" placeholder="Stream 3 Name" value="<%= stream3.name || '' %>">
+                <input type="text" name="stream_3_url" placeholder="Stream 3 URL (.m3u8)" value="<%= stream3.url || '' %>">
+            </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_4_name" placeholder="Stream 4 Name" value="<%= stream4.name || '' %>">
+                <input type="text" name="stream_4_url" placeholder="Stream 4 URL (.m3u8)" value="<%= stream4.url || '' %>">
+            </div>
+            
             <button type="submit">Update Match</button>
             <a href="/admin" class="btn btn-cancel">Cancel</a>
         </form>

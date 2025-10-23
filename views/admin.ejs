@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -13,8 +14,40 @@
         </div>
         
         <form action="/admin/add_match" method="POST" class="match-form">
-            </form>
-
+            <h2>Add New Match</h2>
+            <div class="form-group">
+                <input type="text" name="team_a" placeholder="Team A" required>
+                <input type="text" name="team_b" placeholder="Team B" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="league" placeholder="League Name">
+                <input type="datetime-local" name="match_time" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="team_a_logo" placeholder="Team A Logo URL">
+                <input type="text" name="team_b_logo" placeholder="Team B Logo URL">
+            </div>
+            
+            <h3 class="stream-header">Stream Sources (အနည်းဆုံး တစ်ခု ထည့်ပါ)</h3>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_1_name" placeholder="Stream 1 Name (e.g., SD)">
+                <input type="text" name="stream_1_url" placeholder="Stream 1 URL (.m3u8)" required>
+            </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_2_name" placeholder="Stream 2 Name (e.g., HD)">
+                <input type="text" name="stream_2_url" placeholder="Stream 2 URL (.m3u8)">
+            </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_3_name" placeholder="Stream 3 Name">
+                <input type="text" name="stream_3_url" placeholder="Stream 3 URL (.m3u8)">
+            </div>
+            <div class="form-group stream-inputs">
+                <input type="text" name="stream_4_name" placeholder="Stream 4 Name">
+                <input type="text" name="stream_4_url" placeholder="Stream 4 URL (.m3u8)">
+            </div>
+            
+            <button type="submit">Add Match</button>
+        </form>
         <h2>Match List</h2>
         
         <div class="table-wrapper">
@@ -41,7 +74,12 @@
                             <td><%= match.league %></td>
                             <td><%= new Date(match.match_time).toLocaleString() %></td>
                             <td>
-                                </td>
+                                <% if (match.is_live === 1) { %>
+                                    <span class="status-live">LIVE</span>
+                                <% } else { %>
+                                    <span class="status-offline">OFFLINE</span>
+                                <% } %>
+                            </td>
                             <td class="actions">
                                 <a href="/admin/toggle_live/<%= match.id %>" class="btn btn-toggle">
                                     <%= match.is_live === 1 ? 'Set Offline' : 'Set Live' %>

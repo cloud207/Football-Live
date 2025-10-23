@@ -8,7 +8,7 @@ body {
 }
 
 .admin-container {
-    max-width: 1400px; /* နည်းနည်း ပိုကျယ်ထား */
+    max-width: 1400px;
     margin: 0 auto;
     background-color: #ffffff;
     padding: 15px; /* Mobile အတွက် padding */
@@ -57,7 +57,7 @@ h2 { font-size: 1.5rem; }
 .form-group input[name="stream_url"],
 .form-group input[name="team_a_logo"],
 .form-group input[name="team_b_logo"] {
-    grid-column: 1 / -1; /* Mobile မှာ ပုံမှန် 1 column ဖြစ်နေလို့ 2 column မှာပဲ သတ်မှတ် */
+    grid-column: 1 / -1; 
 }
 
 .match-form button, .btn {
@@ -87,7 +87,7 @@ h2 { font-size: 1.5rem; }
 .match-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 800px; /* အနည်းဆုံး အကျယ် သတ်မှတ်ထားမှ scroll လို့ အဆင်ပြေမယ် */
+    min-width: 800px; 
 }
 .match-table th,
 .match-table td {
@@ -130,7 +130,23 @@ h2 { font-size: 1.5rem; }
 .btn-logout { background-color: #dc3545; }
 
 
-/* --- Mobile Responsive (အရေးကြီး) --- */
+/* Stream Input Styles */
+.stream-header {
+    font-size: 1.2rem;
+    color: #333;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+.form-group.stream-inputs {
+    background-color: #fdfdfd;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* --- Mobile Responsive --- */
 @media (max-width: 768px) {
     body { padding: 5px; }
     .admin-container { padding: 10px; }
@@ -147,6 +163,6 @@ h2 { font-size: 1.5rem; }
     .form-group input[name="stream_url"],
     .form-group input[name="team_a_logo"],
     .form-group input[name="team_b_logo"] {
-        grid-column: 1 / -1; /* 1 column မှာမို့ ဒါ မလိုတော့ပါ */
+        grid-column: 1 / -1;
     }
 }

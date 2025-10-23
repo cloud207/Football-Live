@@ -24,32 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ရလာတဲ့ data တွေကို HTML Card တွေအဖြစ် ပြောင်းမယ်
-function displayMatches(matches) {
-        // အရင် card အဟောင်းတွေ (ရှိခဲ့ရင်) ရှင်းမယ်
+    function displayMatches(matches) {
         matchGrid.innerHTML = ''; 
 
         if (matches.length === 0) {
-            // Live ပွဲစဉ် မရှိရင် စာတန်းပြမယ်
             noMatchesMsg.style.display = 'block';
         } else {
-            // Live ပွဲစဉ် ရှိရင် စာတန်းကို ဖျောက်ထားမယ်
             noMatchesMsg.style.display = 'none';
 
-            // ပွဲစဉ် တစ်ခုချင်းစီအတွက် Card ဆောက်မယ်
             matches.forEach(match => {
                 const matchCard = document.createElement('a');
                 matchCard.className = 'match-card';
                 
-                // Card ကို နှိပ်ရင် watch.html ကို stream URL data နဲ့ ပို့မယ်
-                const streamUrlEncoded = encodeURIComponent(match.stream_url);
+                // Database က stream_urls (JSON string) ကို ယူမယ်
+                const streamsJson = match.stream_urls;
+                
+                // ပထမဆုံး stream link ကို default အဖြစ် ယူမယ်
+                let defaultStreamUrl = '';
+                try {
+                    const streams = JSON.parse(streamsJson);
+                    if (streams && streams.length > 0) {
+                        defaultStreamUrl = streams[0].url; // ပထမဆုံး link ကို default
+                    }
+                } catch (e) {
+                    console.error('No streams found for match', match.id);
+                }
+
+                // watch.html ကို stream link အားလုံး (JSON string) နဲ့ default link ကို ပို့မယ်
+                const streamUrlEncoded = encodeURIComponent(defaultStreamUrl);
+                const allStreamsEncoded = encodeURIComponent(streamsJson); // Stream list အားလုံး
                 const matchTitleEncoded = encodeURIComponent(`${match.team_a} vs ${match.team_b}`);
                 
-                matchCard.href = `watch.html?stream=${streamUrlEncoded}&title=${matchTitleEncoded}`;
+                matchCard.href = `watch.html?stream=${streamUrlEncoded}&title=${matchTitleEncoded}&all_streams=${allStreamsEncoded}`;
 
-                // ===== MODIFIED START =====
                 // Logo URL မထည့်ထားခဲ့ရင် default ပုံလေး သုံးမယ်
-                const logoA = match.team_a_logo || 'https://via.placeholder.com/50.png?text=A';
-                const logoB = match.team_b_logo || 'https://via.placeholder.com/50.png?text=B';
+                const logoA = match.team_a_logo || 'https://placehold.co/50x50/333/FFF?text=A';
+                const logoB = match.team_b_logo || 'https://placehold.co/50x50/333/FFF?text=B';
 
                 // Card HTML ဒီဇိုင်းကို Logo တွေနဲ့ ပြင်ဆင်သတ်မှတ်ခြင်း
                 matchCard.innerHTML = `
@@ -72,9 +82,7 @@ function displayMatches(matches) {
                         <i class="fas fa-play"></i>
                     </div>
                 `;
-                // ===== MODIFIED END =====
                 
-                // ဆောက်ပြီးသား card ကို grid ထဲ ထည့်မယ်
                 matchGrid.appendChild(matchCard);
             });
         }
@@ -83,6 +91,6 @@ function displayMatches(matches) {
     // Page စဖွင့်ဖွင့်ချင်း API ကို စခေါ်မယ်
     fetchLiveMatches();
     
-    // စက္ကန့် ၃၀ တိုင်း data အသစ် ထပ်တောင်းမယ် (ပွဲစဉ်အသစ် ဝင်လာ၊ ထွက်သွားတာ သိအောင်)
+    // စက္ကန့် ၃၀ တိုင်း data အသစ် ထပ်တောင်းမယ်
     setInterval(fetchLiveMatches, 30000); 
 });

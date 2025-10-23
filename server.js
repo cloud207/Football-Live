@@ -1,16 +1,15 @@
-// server.js (UPDATED)
+// server.js (FIXED & COMPLETE)
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./database.js');
-const session = require('express-session'); // <-- အသစ်ထပ်ထည့်သည်
+const session = require('express-session');
 
 const app = express();
 const PORT = 3000;
 
 // --- Admin Login Credentials ---
-// (လုံခြုံရေးအတွက် ဒီနေရာက username/password ကို ပြောင်းပါ)
 const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'password123';
+const ADMIN_PASS = 'password123'; // (ဒီနေရာမှာ ပြောင်းပါ)
 
 // EJS
 app.set('view engine', 'ejs');
@@ -21,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Static Folder (public)
 app.use(express.static('public'));
 
-// --- Session Middleware (အသစ်ထပ်ထည့်သည်) ---
+// --- Session Middleware ---
 app.use(session({
     secret: 'YOUR_VERY_STRONG_SECRET_KEY', // (ဒီစာတန်းကို ပြောင်းလိုက်ပါ)
     resave: false,
@@ -29,18 +28,16 @@ app.use(session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
 }));
 
-// --- Authentication Middleware (အသစ်ထပ်ထည့်သည်) ---
+// --- Authentication Middleware ---
 const checkAuth = (req, res, next) => {
     if (req.session.loggedin) {
-        // Login ဝင်ထားရင် ဆက်သွားခွင့်ပြုမယ်
         next();
     } else {
-        // Login မဝင်ထားရင် /login page ကို ပို့မယ်
         res.redirect('/login');
     }
 };
 
-// --- Login & Logout Routes (အသစ်ထပ်ထည့်သည်) ---
+// --- Login & Logout Routes ---
 
 // Login page ကို ပြသခြင်း
 app.get('/login', (req, res) => {
@@ -51,11 +48,9 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === ADMIN_USER && password === ADMIN_PASS) {
-        // Login အောင်မြင်ရင် session ကို မှတ်ထားမယ်
         req.session.loggedin = true;
         res.redirect('/admin');
     } else {
-        // Login မအောင်မြင်ရင်
         res.render('login', { error: 'Invalid username or password' });
     }
 });
@@ -66,6 +61,24 @@ app.get('/logout', (req, res) => {
         res.redirect('/login');
     });
 });
+
+// --- Helper function (Stream JSON အတွက်) ---
+function buildStreamJson(body) {
+    const streams = [];
+    if (body.stream_1_url) {
+        streams.push({ name: body.stream_1_name || 'Stream 1', url: body.stream_1_url });
+    }
+    if (body.stream_2_url) {
+        streams.push({ name: body.stream_2_name || 'Stream 2', url: body.stream_2_url });
+    }
+    if (body.stream_3_url) {
+        streams.push({ name: body.stream_3_name || 'Stream 3', url: body.stream_3_url });
+    }
+    if (body.stream_4_url) {
+        streams.push({ name: body.stream_4_name || 'Stream 4', url: body.stream_4_url });
+    }
+    return JSON.stringify(streams);
+}
 
 
 // --- Admin Panel Routes (အားလုံးကို checkAuth ဖြင့် ကာကွယ်ထားသည်) ---
@@ -83,16 +96,37 @@ app.get('/admin', checkAuth, (req, res) => {
 
 // ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/add_match', checkAuth, (req, res) => {
-    const { team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo } = req.body;
-    const sql = `INSERT INTO matches (team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo, is_live) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 0)`;
-    db.run(sql, [team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo], (err) => {
-        if (err) { return console.error(err.message); }
+    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo } = req.body;
+    const streamUrlsJson = buildStreamJson(req.body);
+    
+    // === FIX START ===
+    // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
+    const legacyStreamUrl = req.body.stream_1_url || ''; 
+
+    // SQL query ထဲ 'stream_url' (အဟောင်း) ကိုပါ ထပ်ထည့်ပါ
+    const sql = `INSERT INTO matches (
+                    team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
+                    stream_urls, 
+                    stream_url,  -- column အဟောင်း
+                    is_live
+                 ) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`; // '?' တစ်ခု ပိုလာပါပြီ
+                 
+    // db.run ထဲ legacyStreamUrl ကိုပါ ထပ်ထည့်ပါ
+    db.run(sql, [
+        team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
+        streamUrlsJson, 
+        legacyStreamUrl // column အဟောင်းအတွက် value
+    ], (err) => {
+        // Error handler ကိုပါ ပြင်ထား (Browser မလည်အောင်)
+        if (err) { 
+            console.error("Failed to add match:", err.message);
+            return res.redirect('/admin?error=' + encodeURIComponent(err.message));
+        }
+        // === FIX END ===
         res.redirect('/admin');
     });
 });
-
-// --- Edit Routes (အသစ်ထပ်ထည့်သည်) ---
 
 // Edit page ကို ပြသခြင်း (checkAuth ထည့်ထား)
 app.get('/admin/edit/:id', checkAuth, (req, res) => {
@@ -105,7 +139,6 @@ app.get('/admin/edit/:id', checkAuth, (req, res) => {
         if (!row) {
             return res.redirect('/admin'); // Match မရှိရင် admin page ပြန်ပို့
         }
-        // 'edit.ejs' ကို render လုပ်ပြီး 'match' data ကို ထည့်ပေးလိုက်မယ်
         res.render('edit', { match: row });
     });
 });
@@ -113,22 +146,38 @@ app.get('/admin/edit/:id', checkAuth, (req, res) => {
 // Edit data တွေကို Update လုပ်ခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
-    const { team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo } = req.body;
+    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo } = req.body;
+    const streamUrlsJson = buildStreamJson(req.body);
+
+    // === FIX START ===
+    // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
+    const legacyStreamUrl = req.body.stream_1_url || '';
     
+    // SQL query ထဲ 'stream_url' (အဟောင်း) ကိုပါ ထပ်ထည့်ပါ
     const sql = `UPDATE matches SET 
                     team_a = ?, 
                     team_b = ?, 
                     league = ?, 
                     match_time = ?, 
-                    stream_url = ?, 
                     team_a_logo = ?, 
-                    team_b_logo = ? 
+                    team_b_logo = ?,
+                    stream_urls = ?,
+                    stream_url = ?   -- column အဟောင်း
                  WHERE id = ?`;
                  
-    db.run(sql, [team_a, team_b, league, match_time, stream_url, team_a_logo, team_b_logo, id], (err) => {
+    // db.run ထဲ legacyStreamUrl ကိုပါ ထပ်ထည့်ပါ
+    db.run(sql, [
+        team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
+        streamUrlsJson, 
+        legacyStreamUrl, // column အဟောင်းအတွက် value
+        id
+    ], (err) => {
+        // Error handler ကိုပါ ပြင်ထား (Browser မလည်အောင်)
         if (err) {
-            return console.error(err.message);
+            console.error("Failed to update match:", err.message);
+            return res.redirect('/admin?error=' + encodeURIComponent(err.message));
         }
+        // === FIX END ===
         console.log(`Match ${id} has been updated.`);
         res.redirect('/admin');
     });

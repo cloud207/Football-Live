@@ -9,7 +9,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #0f0f0f; /* ပိုနက်တဲ့ နောက်ခံအရောင် */
+    background-color: #0f0f0f; 
     color: #ffffff;
     line-height: 1.6;
 }
@@ -46,7 +46,7 @@ nav {
 .logo {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #1e90ff; /* Logo အရောင် (ဥပမာ - အပြာ) */
+    color: #1e90ff; 
 }
 
 nav ul { list-style: none; display: flex; }
@@ -62,7 +62,7 @@ nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
 }
 .live-matches h2 .fa-satellite-dish {
     margin-right: 10px;
-    color: #ff4500; /* LIVE icon အရောင် */
+    color: #ff4500; 
 }
 
 /* --- Match Grid Layout --- */
@@ -110,10 +110,9 @@ nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
     border-radius: 12px;
     font-weight: bold;
     font-size: 0.8rem;
-    animation: pulse 1.5s infinite; /* Live icon ကို လှုပ်နေစေမယ် */
+    animation: pulse 1.5s infinite;
 }
 
-/* Live dot animation */
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(255, 69, 0, 0); }
@@ -121,26 +120,24 @@ nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
 }
 
 .card-body {
-    padding: 1.25rem 1rem; /* Padding နည်းနည်း လျှော့ */
+    padding: 1.25rem 1rem;
     text-align: center;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    gap: 5px; /* အသင်းတွေကြား gap ထား */
+    gap: 5px;
 }
 
 .team-info {
     display: flex;
     flex-direction: column;
     align-items: center;
-    
-    /* (Mobile Friendly အတွက် အသင်းနာမည် အရှည်/အတို ညီအောင်) */
-    flex: 1; /* နေရာ အညီအမျှ ယူမယ် */
-    min-width: 0; /* flex item တွေ ကျုံ့နိုင်အောင် */
+    flex: 1; 
+    min-width: 0;
 }
 
 .team-logo {
-    width: 45px; /* Mobile မှာ ပိုလှအောင် နည်းနည်း သေး */
+    width: 45px;
     height: 45px;
     object-fit: contain;
     margin-bottom: 0.5rem;
@@ -153,30 +150,68 @@ nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%; /* team-info ရဲ့ 100% ယူ */
+    width: 100%; 
 }
 
 .vs-text {
-    font-size: 0.9rem; /* နည်းနည်း သေး */
+    font-size: 0.9rem;
     color: #aaa;
     font-weight: bold;
 }
 
-/* ... (ကျန်တဲ့ style တွေ) ... */
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.match-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.play-overlay i {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#no-matches-msg {
+    color: #aaa;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 4rem 0;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 2rem;
+    background-color: #1a1a1a;
+    margin-top: 2rem;
+    border-top: 1px solid #333;
+    color: #777;
+}
 
 /* --- Watch Page (Video Player) Styles --- */
 .watch-container {
     max-width: 1200px;
-    margin: 1rem auto; /* Mobile မှာ အပေါ်အောက် space လျှော့ */
+    margin: 1rem auto;
     padding: 0.5rem;
 }
 .watch-container h2 {
-    font-size: 1.3rem; /* Mobile အတွက် ခေါင်းစဉ် သေး */
+    font-size: 1.3rem;
     margin-bottom: 1rem;
 }
 .video-player-wrapper {
     position: relative;
-    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    padding-top: 56.25%; /* 16:9 */
     background-color: #000;
 }
 #video-player {
@@ -189,9 +224,19 @@ nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
 .back-link {
     display: inline-block;
     color: #1e90ff;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     font-size: 1.1rem;
 }
 .back-link:hover {
     text-decoration: underline;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    main {
+        padding: 1rem;
+    }
+    .live-matches h2 {
+        font-size: 1.5rem;
+    }
 }

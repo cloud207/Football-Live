@@ -5,24 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watching Live</title>
     <link rel="stylesheet" href="ui-style.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    
     <style>
-        /* Video Player အတွက် ထပ်တိုး CSS */
+        /* Video.js player ကို theme နဲ့ ညှိမယ် */
         #video-player {
             width: 100%;
             height: 100%;
-            background-color: #000;
+        }
+        .video-js {
+            background-color: #0f0f0f; /* နောက်ခံအရောင် */
+        }
+        
+        /* === Stream Switcher Button Styles === */
+        .stream-switcher {
+            margin-top: 1.5rem;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .stream-switcher h3 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        .stream-buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .stream-btn {
+            background-color: #282828;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .stream-btn:hover {
+            background-color: #333;
+        }
+        .stream-btn.active {
+            background-color: #1e90ff; /* အပြာရောင် */
+            border-color: #1e90ff;
+            font-weight: bold;
+            color: #fff;
+        }
+        .back-link {
+            margin-top: 1.5rem; /* Back button ကို အောက်ရွှေ့ */
         }
     </style>
 </head>
 <body>
-
     <header>
         <nav>
             <div class="logo">LiveFootball</div>
-            <ul>
-                <li><a href="/">Home</a></li>
-            </ul>
+            <ul> <li><a href="/">Home</a></li> </ul>
         </nav>
     </header>
 
@@ -31,54 +74,97 @@
             <h2 id="match-title">Loading match...</h2>
 
             <div class="video-player-wrapper">
-                <video id="video-player" controls autoplay></video>
+                <video
+                  id="video-player"
+                  class="video-js vjs-default-skin vjs-big-play-centered"
+                  controls
+                  autoplay
+                  preload="auto"
+                  data-setup='{"fluid": true}' 
+                >
+                </video>
+            </div>
+            
+            <div class="stream-switcher">
+                <h3>Change Stream Source</h3>
+                <div id="stream-buttons-container">
+                    </div>
             </div>
             
             <a href="/" class="back-link">&larr; Back to Home</a>
         </div>
     </main>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const video = document.getElementById('video-player');
+            const videoPlayerElement = document.getElementById('video-player');
             const matchTitleElement = document.getElementById('match-title');
+            const streamButtonsContainer = document.getElementById('stream-buttons-container');
 
-            // URL ကနေ stream link နဲ့ title ကို ဖြည်ယူမယ်
+            // URL ကနေ data တွေ ဖြည်ယူမယ်
             const urlParams = new URLSearchParams(window.location.search);
-            const streamUrl = urlParams.get('stream'); // app.js က ပို့လိုက်တဲ့ link
-            const matchTitle = urlParams.get('title'); // app.js က ပို့လိုက်တဲ့ နာမည်
+            const defaultStreamUrl = decodeURIComponent(urlParams.get('stream'));
+            const allStreamsJson = decodeURIComponent(urlParams.get('all_streams'));
+            const matchTitle = decodeURIComponent(urlParams.get('title'));
 
             if (matchTitle) {
-                matchTitleElement.textContent = decodeURIComponent(matchTitle);
+                matchTitleElement.textContent = matchTitle;
             }
 
-            if (streamUrl) {
-                const decodedStreamUrl = decodeURIComponent(streamUrl);
-                
-                // HLS.js က HLS stream တွေကို support လုပ်သလား စစ်မယ်
-                if (Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(decodedStreamUrl);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play();
+            // Video.js player ကို စတင် သတ်မှတ်မယ်
+            const player = videojs('video-player');
+
+            try {
+                const streams = JSON.parse(allStreamsJson);
+
+                if (streams && streams.length > 0) {
+                    
+                    // 1. Stream Button တွေကို တည်ဆောက်မယ်
+                    streams.forEach(stream => {
+                        const button = document.createElement('button');
+                        button.className = 'stream-btn';
+                        button.textContent = stream.name;
+                        button.dataset.url = stream.url; // URL ကို button မှာ သိမ်းထား
+
+                        if (stream.url === defaultStreamUrl) {
+                            button.classList.add('active');
+                        }
+                        
+                        button.addEventListener('click', () => {
+                            streamButtonsContainer.querySelectorAll('.stream-btn').forEach(btn => {
+                                btn.classList.remove('active');
+                            });
+                            button.classList.add('active');
+                            
+                            player.src({
+                                src: stream.url,
+                                type: 'application/x-mpegURL' // HLS stream
+                            });
+                            player.play();
+                        });
+
+                        streamButtonsContainer.appendChild(button);
                     });
-                } 
-                // HLS.js မရတဲ့ device (iOS Safari) တွေမှာ video element က တိုက်ရိုက် ဖွင့်နိုင်သလား စစ်မယ်
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = decodedStreamUrl;
-                    video.addEventListener('loadedmetadata', () => {
-                        video.play();
-                    });
+
+                    // 2. Default Stream ကို စဖွင့်မယ်
+                    if (defaultStreamUrl) {
+                        player.src({
+                            src: defaultStreamUrl,
+                            type: 'application/x-mpegURL'
+                        });
+                        player.play();
+                    }
+
                 } else {
-                    alert("Sorry, your browser does not support HLS streaming.");
+                    streamButtonsContainer.innerHTML = '<p style="color: #aaa;">No stream sources available.</p>';
                 }
-            } else {
-                alert("No stream URL provided.");
-                matchTitleElement.textContent = "Error: Stream not found.";
+            } catch (e) {
+                console.error('Failed to parse streams:', e);
+                streamButtonsContainer.innerHTML = '<p style="color: red;">Error loading stream data.</p>';
             }
         });
     </script>
-
 </body>
 </html>
