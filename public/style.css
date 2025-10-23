@@ -1,0 +1,100 @@
+/* public/style.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #111;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Form Styles */
+.match-form {
+    margin-bottom: 30px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+}
+.form-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.form-group input[name="stream_url"] {
+    grid-column: 1 / -1; /* Stream URL ကို အတန်းလိုက် အပြည့် ယူမယ် */
+}
+.match-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Padding ကြောင့် width မကျော်အောင် */
+}
+.match-form button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.match-form button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Styles */
+.match-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.match-table th,
+.match-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+.match-table th {
+    background-color: #f7f7f7;
+}
+.status-live {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.status-offline {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.actions .btn {
+    text-decoration: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-size: 14px;
+}
+.btn-toggle { background-color: #ffc107; }
+.btn-toggle:hover { background-color: #e0a800; }
+.btn-delete { background-color: #dc3545; }
+.btn-delete:hover { background-color: #c82333; }

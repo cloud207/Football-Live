@@ -1,0 +1,253 @@
+/* public/ui-style.css */
+
+/* --- အခြေခံ Styles --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #0f0f0f; /* ပိုနက်တဲ့ နောက်ခံအရောင် */
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --- Header / Navigation Bar --- */
+header {
+    background-color: #1a1a1a;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1e90ff; /* Logo အရောင် (ဥပမာ - အပြာ) */
+}
+
+nav ul { list-style: none; display: flex; }
+nav ul li { margin-left: 1.5rem; }
+nav ul li a { font-size: 1rem; padding-bottom: 0.5rem; }
+nav ul li a.active { color: #1e90ff; border-bottom: 2px solid #1e90ff; }
+
+/* --- Live Matches Section --- */
+.live-matches h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #1e90ff;
+}
+.live-matches h2 .fa-satellite-dish {
+    margin-right: 10px;
+    color: #ff4500; /* LIVE icon အရောင် */
+}
+
+/* --- Match Grid Layout --- */
+.match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* --- Match Card Design --- */
+.match-card {
+    display: block;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.match-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(30, 144, 255, 0.2);
+    border-color: #1e90ff;
+}
+
+.card-header {
+    padding: 0.75rem 1rem;
+    background-color: #252525;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.card-header .league {
+    color: #aaa;
+    font-weight: bold;
+}
+
+.live-dot {
+    background-color: #ff4500;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    animation: pulse 1.5s infinite; /* Live icon ကို လှုပ်နေစေမယ် */
+}
+
+/* Live dot animation */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 69, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 69, 0, 0); }
+}
+
+.card-body {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    /* ===== MODIFIED START ===== */
+    /* Flexbox သုံးပြီး အသင်း logo တွေကို ဘေးတန်းစီမယ် */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    /* ===== MODIFIED END ===== */
+}
+
+/* (---- ဒီ Code အသစ်တွေကို ထပ်ထည့်ပါ ----) */
+.team-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px; /* အသင်းနာမည်ရှည်ရင် ညီသွားအောင် width သတ်မှတ်မယ် */
+}
+
+.team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain; /* Logo ပုံ မပြား/မဆန့်သွားအောင် */
+    margin-bottom: 0.5rem;
+}
+
+.team-name {
+    font-size: 0.9rem;
+    color: #fff;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%; 
+}
+
+.vs-text {
+    font-size: 1rem;
+    color: #aaa;
+    font-weight: bold;
+}
+/* (---- ဒီအထိ ----) */
+
+
+.card-body h3 {
+    /* ဒီ h3 ကို မသုံးတော့ပါဘူး */
+    font-size: 1.3rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+/* ... (ကျန်တဲ့ style တွေ) ... */
+
+.card-body h3 {
+    font-size: 1.3rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.match-card:hover .play-overlay {
+    opacity: 1;
+}
+
+.play-overlay i {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#no-matches-msg {
+    color: #aaa;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 4rem 0;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 2rem;
+    background-color: #1a1a1a;
+    margin-top: 2rem;
+    border-top: 1px solid #333;
+    color: #777;
+}
+
+/* --- Watch Page (Video Player) Styles --- */
+.watch-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+.watch-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #1e90ff;
+}
+.video-player-wrapper {
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    background-color: #000;
+}
+#video-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.back-link {
+    display: inline-block;
+    color: #1e90ff;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+.back-link:hover {
+    text-decoration: underline;
+}

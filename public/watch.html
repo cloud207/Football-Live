@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watching Live</title>
+    <link rel="stylesheet" href="ui-style.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        /* Video Player အတွက် ထပ်တိုး CSS */
+        #video-player {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <div class="logo">LiveFootball</div>
+            <ul>
+                <li><a href="/">Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="watch-container">
+            <h2 id="match-title">Loading match...</h2>
+
+            <div class="video-player-wrapper">
+                <video id="video-player" controls autoplay></video>
+            </div>
+            
+            <a href="/" class="back-link">&larr; Back to Home</a>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('video-player');
+            const matchTitleElement = document.getElementById('match-title');
+
+            // URL ကနေ stream link နဲ့ title ကို ဖြည်ယူမယ်
+            const urlParams = new URLSearchParams(window.location.search);
+            const streamUrl = urlParams.get('stream'); // app.js က ပို့လိုက်တဲ့ link
+            const matchTitle = urlParams.get('title'); // app.js က ပို့လိုက်တဲ့ နာမည်
+
+            if (matchTitle) {
+                matchTitleElement.textContent = decodeURIComponent(matchTitle);
+            }
+
+            if (streamUrl) {
+                const decodedStreamUrl = decodeURIComponent(streamUrl);
+                
+                // HLS.js က HLS stream တွေကို support လုပ်သလား စစ်မယ်
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(decodedStreamUrl);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play();
+                    });
+                } 
+                // HLS.js မရတဲ့ device (iOS Safari) တွေမှာ video element က တိုက်ရိုက် ဖွင့်နိုင်သလား စစ်မယ်
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = decodedStreamUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play();
+                    });
+                } else {
+                    alert("Sorry, your browser does not support HLS streaming.");
+                }
+            } else {
+                alert("No stream URL provided.");
+                matchTitleElement.textContent = "Error: Stream not found.";
+            }
+        });
+    </script>
+
+</body>
+</html>
