@@ -222,6 +222,27 @@ app.get('/api/live_matches', (req, res) => {
     });
 });
 
+// --- Public API Route (Upcoming Matches) ---
+app.get('/api/upcoming_matches', (req, res) => {
+    // is_live = 0 (live မလွှင့်သေး)
+    // AND match_time က အခုလက်ရှိအချိန်ထက် ပိုကြီး (နောက်ကျ)
+    // ORDER BY match_time ASC (အနီးဆုံးပွဲကို အရင်ပြ)
+    const sql = `
+        SELECT * FROM matches 
+        WHERE 
+            is_live = 0 AND 
+            datetime(match_time) > datetime('now')
+        ORDER BY match_time ASC
+        LIMIT 10`; // (ပွဲတွေ အရမ်းများမနေအောင် ၁၀ ပွဲပဲ ကန့်သတ်ထားမယ်)
+
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows); // Data ကို JSON ပုံစံနဲ့ ပြန်ပေးမယ်
+    });
+});
 
 // Server ကို စတင် Run ခြင်း
 app.listen(PORT, () => {
