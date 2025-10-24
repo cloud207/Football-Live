@@ -96,27 +96,29 @@ app.get('/admin', checkAuth, (req, res) => {
 
 // ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/add_match', checkAuth, (req, res) => {
-    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo } = req.body;
+    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
     const streamUrlsJson = buildStreamJson(req.body);
     
     // === FIX START ===
     // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
     const legacyStreamUrl = req.body.stream_1_url || ''; 
 
-    // SQL query ထဲ 'stream_url' (အဟောင်း) ကိုပါ ထပ်ထည့်ပါ
+    // SQL query ထဲ 'stream_url' (အဟောင်း) နဲ့ 'auto_live' ကိုပါ ထပ်ထည့်ပါ
     const sql = `INSERT INTO matches (
                     team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
                     stream_urls, 
-                    stream_url,  -- column အဟောင်း
-                    is_live
+                    stream_url,  -- column အဟောင်း (legacy)
+                    is_live,
+                    auto_live    -- New auto_live column
                  ) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`; // '?' တစ်ခု ပိုလာပါပြီ
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`; // '?' နှစ်ခု ပိုလာပါပြီ
                  
-    // db.run ထဲ legacyStreamUrl ကိုပါ ထပ်ထည့်ပါ
+    // db.run ထဲ legacyStreamUrl နဲ့ auto_live ကိုပါ ထပ်ထည့်ပါ
     db.run(sql, [
         team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
-        streamUrlsJson, 
-        legacyStreamUrl // column အဟောင်းအတွက် value
+        streamUrlsJson,
+        legacyStreamUrl, // column အဟောင်းအတွက် value
+        auto_live ? 1 : 0 // Checkbox က on/off ဖြစ်လို့ 1/0 ပြောင်း
     ], (err) => {
         // Error handler ကိုပါ ပြင်ထား (Browser မလည်အောင်)
         if (err) { 
@@ -146,14 +148,14 @@ app.get('/admin/edit/:id', checkAuth, (req, res) => {
 // Edit data တွေကို Update လုပ်ခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
-    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo } = req.body;
+    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
     const streamUrlsJson = buildStreamJson(req.body);
 
     // === FIX START ===
     // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
     const legacyStreamUrl = req.body.stream_1_url || '';
     
-    // SQL query ထဲ 'stream_url' (အဟောင်း) ကိုပါ ထပ်ထည့်ပါ
+    // SQL query ထဲ 'stream_url' (အဟောင်း) နဲ့ 'auto_live' ကိုပါ ထပ်ထည့်ပါ
     const sql = `UPDATE matches SET 
                     team_a = ?, 
                     team_b = ?, 
@@ -162,14 +164,16 @@ app.post('/admin/edit/:id', checkAuth, (req, res) => {
                     team_a_logo = ?, 
                     team_b_logo = ?,
                     stream_urls = ?,
-                    stream_url = ?   -- column အဟောင်း
+                    stream_url = ?,   -- column အဟောင်း (legacy)
+                    auto_live = ?     -- New auto_live column
                  WHERE id = ?`;
                  
-    // db.run ထဲ legacyStreamUrl ကိုပါ ထပ်ထည့်ပါ
+    // db.run ထဲ legacyStreamUrl နဲ့ auto_live ကိုပါ ထပ်ထည့်ပါ
     db.run(sql, [
         team_a, team_b, league, match_time, team_a_logo, team_b_logo, 
-        streamUrlsJson, 
+        streamUrlsJson,
         legacyStreamUrl, // column အဟောင်းအတွက် value
+        auto_live ? 1 : 0, // Checkbox က on/off ဖြစ်လို့ 1/0 ပြောင်း
         id
     ], (err) => {
         // Error handler ကိုပါ ပြင်ထား (Browser မလည်အောင်)
@@ -243,6 +247,30 @@ app.get('/api/upcoming_matches', (req, res) => {
         res.json(rows); // Data ကို JSON ပုံစံနဲ့ ပြန်ပေးမယ်
     });
 });
+
+// --- Auto-Live Scheduler ---
+// 1 မိနစ် (60000 ms) တိုင်း database ကို စစ်ဆေးပြီး ပွဲချိန်ရောက်ရင် Live ပြောင်းပေးမယ်
+setInterval(() => {
+    const now = new Date().toISOString(); // လက်ရှိအချိန်ကို ISO format နဲ့ ယူမယ်
+    const sql = `
+        UPDATE matches
+        SET is_live = 1
+        WHERE 
+            is_live = 0 AND 
+            auto_live = 1 AND 
+            datetime(match_time) <= datetime(?)
+    `;
+    db.run(sql, [now], function(err) {
+        if (err) {
+            console.error('Auto-Live Scheduler Error:', err.message);
+        } else if (this.changes > 0) {
+            console.log(`Auto-Live Scheduler: ${this.changes} match(es) set to live.`);
+        }
+    });
+}, 60000); // 1 မိနစ် (60000 ms) တိုင်း run ပါမည်
+
+
+
 
 // Server ကို စတင် Run ခြင်း
 app.listen(PORT, () => {

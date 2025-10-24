@@ -44,7 +44,7 @@ nav {
 }
 
 .logo {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #1e90ff; 
 }
@@ -240,6 +240,12 @@ footer {
         font-size: 1.5rem;
     }
 }
+
+/* --- Upcoming Matches Section --- */
+.upcoming-matches {
+    margin-top: 3rem; /* Add space above the upcoming matches section */
+}
+
 
 /* --- Section Header & Filters (အသစ်) --- */
 .section-header {

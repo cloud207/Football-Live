@@ -35,7 +35,7 @@
             display: flex;
             flex-direction: column; /* ဒေါင်လိုက် (အပေါ်အောက်) ပြောင်းလိုက်ပါပြီ */
             flex-wrap: nowrap;      /* wrap မလုပ်တော့ပါ */
-            gap: 1000px;              /* ခလုတ်များကြား ဒေါင်လိုက်အကွာအဝေး */
+            gap: 10px;              /* ခလုတ်များကြား ဒေါင်လိုက်အကွာအဝေး */
         }
         .stream-btn {
             background-color: #282828;
@@ -124,11 +124,18 @@
             const matchTitleElement = document.getElementById('match-title');
             const streamButtonsContainer = document.getElementById('stream-buttons-container');
 
-            // URL ကနေ data တွေ ဖြည်ယူမယ်
-            const urlParams = new URLSearchParams(window.location.search);
-            const defaultStreamUrl = decodeURIComponent(urlParams.get('stream'));
-            const allStreamsJson = decodeURIComponent(urlParams.get('all_streams'));
-            const matchTitle = decodeURIComponent(urlParams.get('title'));
+            // URL အစား sessionStorage ကနေ data တွေ ဖြည်ယူမယ်
+            const watchDataString = sessionStorage.getItem('watch_data');
+            if (!watchDataString) {
+                matchTitleElement.textContent = 'Error: Match data not found.';
+                streamButtonsContainer.innerHTML = '<p style="color: red;">Please go back to the homepage and select a match.</p>';
+                return; // data မရှိရင် အလုပ်ဆက်မလုပ်တော့ပါ
+            }
+
+            const watchData = JSON.parse(watchDataString);
+            const matchTitle = watchData.title;
+            const allStreamsJson = watchData.streams;
+            let defaultStreamUrl = '';
 
             if (matchTitle) {
                 matchTitleElement.textContent = matchTitle;
@@ -141,6 +148,9 @@
                 const streams = JSON.parse(allStreamsJson);
 
                 if (streams && streams.length > 0) {
+
+                    // ပထမဆုံး stream link ကို default အဖြစ် ယူမယ်
+                    defaultStreamUrl = streams[0].url;
                     
                     // 1. Stream Button တွေကို တည်ဆောက်မယ်
                     streams.forEach(stream => {

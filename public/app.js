@@ -41,28 +41,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchCard.className = 'match-card';
                 
                 // Database က stream_urls (JSON string) ကို ယူမယ်
-                const streamsJson = match.stream_urls;
-                
-                // ပထမဆုံး stream link ကို default အဖြစ် ယူမယ်
-                let defaultStreamUrl = '';
-                try {
-                    const streams = JSON.parse(streamsJson);
-                    if (streams && streams.length > 0) {
-                        defaultStreamUrl = streams[0].url; // ပထမဆုံး link ကို default
-                    }
-                } catch (e) {
-                    console.error('No streams found for match', match.id);
-                }
-
-                // watch.html ကို stream link အားလုံး (JSON string) နဲ့ default link ကို ပို့မယ်
-                const streamUrlEncoded = encodeURIComponent(defaultStreamUrl);
-                const allStreamsEncoded = encodeURIComponent(streamsJson); // Stream list အားလုံး
-                const matchTitleEncoded = encodeURIComponent(`${match.team_a} vs ${match.team_b}`);
+                const streamsJson = match.stream_urls || '[]';
+                const matchTitle = `${match.team_a} vs ${match.team_b}`;
                 
                 // Filter လုပ်ရန်အတွက် data-league attribute ထည့်ပါ
                 matchCard.dataset.league = match.league || 'Friendly';
 
-                matchCard.href = `watch.html?stream=${streamUrlEncoded}&title=${matchTitleEncoded}&all_streams=${allStreamsEncoded}`;
+                // URL မှာ data တွေ မပေါ်အောင် sessionStorage ကိုသုံးပြီး data ပို့ပါမယ်
+                matchCard.href = `watch.html`; // URL ကိုရှင်းထုတ်လိုက်ပါပြီ
+                matchCard.addEventListener('click', (event) => {
+                    event.preventDefault(); // Link ကို တန်းမသွားအောင် တားပါ
+
+                    // Data တွေကို sessionStorage မှာ သိမ်းပါ
+                    sessionStorage.setItem('watch_data', JSON.stringify({
+                        title: matchTitle,
+                        streams: streamsJson
+                    }));
+
+                    // watch.html ကို သွားပါ
+                    window.location.href = 'watch.html';
+                });
 
                 // Logo URL မထည့်ထားခဲ့ရင် default ပုံလေး သုံးမယ်
                 const logoA = match.team_a_logo || 'https://placehold.co/50x50/333/FFF?text=A';

@@ -1,8 +1,8 @@
 /* public/style.css (UPDATED) */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text */
     margin: 0;
     padding: 10px; /* Mobile အတွက် padding ထည့်ထား */
 }
@@ -10,10 +10,10 @@ body {
 .admin-container {
     max-width: 1400px;
     margin: 0 auto;
-    background-color: #ffffff;
+    background-color: #1e1e1e; /* Slightly lighter dark background */
     padding: 15px; /* Mobile အတွက် padding */
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .admin-header {
@@ -25,8 +25,8 @@ body {
 }
 
 h1, h2 {
-    color: #111;
-    border-bottom: 2px solid #eee;
+    color: #ffffff;
+    border-bottom: 2px solid #333; /* Darker border */
     padding-bottom: 10px;
     margin-bottom: 1rem;
 }
@@ -37,7 +37,7 @@ h2 { font-size: 1.5rem; }
 /* Form Styles */
 .match-form {
     margin-bottom: 30px;
-    background: #f9f9f9;
+    background: #2a2a2a; /* Dark form background */
     padding: 20px;
     border-radius: 5px;
 }
@@ -50,9 +50,11 @@ h2 { font-size: 1.5rem; }
 .form-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #444; /* Darker border */
     border-radius: 4px;
-    box-sizing: border-box; 
+    box-sizing: border-box;
+    background-color: #333; /* Dark input background */
+    color: #e0e0e0; /* Light input text */
 }
 .form-group input[name="stream_url"],
 .form-group input[name="team_a_logo"],
@@ -91,12 +93,12 @@ h2 { font-size: 1.5rem; }
 }
 .match-table th,
 .match-table td {
-    border: 1px solid #ddd;
+    border: 1px solid #444; /* Darker border */
     padding: 12px;
     text-align: left;
     vertical-align: middle;
 }
-.match-table th { background-color: #f7f7f7; }
+.match-table th { background-color: #333; } /* Darker table header */
 
 .match-cell {
     display: flex;
@@ -109,8 +111,8 @@ h2 { font-size: 1.5rem; }
     object-fit: contain;
 }
 
-.status-live { background-color: #d4edda; color: #155724; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
-.status-offline { background-color: #f8d7da; color: #721c24; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
+.status-live { background-color: #28a745; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
+.status-offline { background-color: #dc3545; color: #ffffff; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
 
 .actions {
     display: flex;
@@ -133,15 +135,15 @@ h2 { font-size: 1.5rem; }
 /* Stream Input Styles */
 .stream-header {
     font-size: 1.2rem;
-    color: #333;
+    color: #e0e0e0; /* Light text */
     margin-top: 20px;
     margin-bottom: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #444; /* Darker border */
     padding-top: 20px;
 }
 .form-group.stream-inputs {
-    background-color: #fdfdfd;
-    border: 1px solid #eee;
+    background-color: #333; /* Match input background */
+    border: 1px solid #444; /* Match input border */
     padding: 10px;
     border-radius: 4px;
 }

@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS matches (
     league TEXT,
     match_time TEXT NOT NULL,
     stream_url TEXT NOT NULL,
-    is_live INTEGER DEFAULT 0 
+    is_live INTEGER DEFAULT 0
+    -- The 'auto_live' and 'stream_urls' columns should be added via migration scripts, not here.
 );
 `;
 // is_live: 0 = Not Live, 1 = Live
