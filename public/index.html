@@ -57,13 +57,32 @@
             <span class="close-btn">&times;</span>
             <h2>Support Us</h2>
             <p>If you enjoy our service, please consider donating to help keep the servers running.</p>
+            
             <div class="donation-address">
                 <p><strong>BTC Address:</strong></p>
                 <div class="address-container">
-                    <input type="text" value="bc1qmldf7cyhn20uaatgnn582cq6wzhc9rgpqtarhg" id="btc-address" readonly>
-                    <button id="copy-btc-btn">Copy</button>
+                    <input type="text" value="bc1qhatg8ytst9nmqg5cc3v4t6rh0kfcja8wltdtvk" class="donation-input" readonly>
+                    <button class="copy-btn">Copy</button>
                 </div>
-                <p id="copy-success-msg" style="display:none; color: #28a745; margin-top: 5px;">Address copied!</p>
+                <p class="copy-success-msg" style="display:none;">Address copied!</p>
+            </div>
+
+            <div class="donation-address">
+                <p><strong>USDT (Polygon):</strong></p>
+                <div class="address-container">
+                    <input type="text" value="0x73bef2e8959fe5b81f42bd1b81d846743cd26fc1" class="donation-input" readonly>
+                    <button class="copy-btn">Copy</button>
+                </div>
+                <p class="copy-success-msg" style="display:none;">Address copied!</p>
+            </div>
+
+            <div class="donation-address">
+                <p><strong>USDC (Solana):</strong></p>
+                <div class="address-container">
+                    <input type="text" value="BRRWVYPJVVHSQhArEwEZzHgR8eKRV7Bv4wWvzBRFMkzv" class="donation-input" readonly>
+                    <button class="copy-btn">Copy</button>
+                </div>
+                <p class="copy-success-msg" style="display:none;">Address copied!</p>
             </div>
         </div>
     </div>
@@ -79,9 +98,6 @@
             const modal = document.getElementById('donate-modal');
             const donateBtn = document.getElementById('donate-btn');
             const closeBtn = document.querySelector('#donate-modal .close-btn');
-            const copyBtn = document.getElementById('copy-btc-btn');
-            const btcAddressInput = document.getElementById('btc-address');
-            const copySuccessMsg = document.getElementById('copy-success-msg');
 
             if (donateBtn) {
                 donateBtn.onclick = function() {
@@ -101,18 +117,26 @@
                 }
             }
 
-            if (copyBtn) {
+            // Generic copy logic for all copy buttons in the modal
+            const copyContainers = modal.querySelectorAll('.donation-address');
+            copyContainers.forEach(container => {
+                const copyBtn = container.querySelector('.copy-btn');
+                const addressInput = container.querySelector('.donation-input');
+                const successMsg = container.querySelector('.copy-success-msg');
+
                 copyBtn.onclick = function() {
-                    btcAddressInput.select();
-                    btcAddressInput.setSelectionRange(0, 99999); // For mobile devices
+                    addressInput.select();
+                    addressInput.setSelectionRange(0, 99999); // For mobile devices
+                    
+                    // Use the modern Clipboard API if available, with a fallback
                     document.execCommand('copy');
 
-                    copySuccessMsg.style.display = 'block';
+                    successMsg.style.display = 'block';
                     setTimeout(() => {
-                        copySuccessMsg.style.display = 'none';
+                        successMsg.style.display = 'none';
                     }, 2000);
                 }
-            }
+            });
         });
     </script>
 

@@ -24,7 +24,7 @@
     <%- include('admin-nav', { page: 'highlights' }) %>
 
     <!-- Add Highlight Form -->
-    <h2><%= typeof hlToEdit !== 'undefined' && hlToEdit ? 'Edit Highlight' : 'Add New Highlight' %></h2>
+Fix highlights player not play. Because not .m3u8 it .mp4    <h2><%= typeof hlToEdit !== 'undefined' && hlToEdit ? 'Edit Highlight' : 'Add New Highlight' %></h2>
     <form class="match-form" action="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? '/admin/highlights/edit/' + hlToEdit.id : '/admin/highlights/add' %>" method="POST">
         <div class="form-group">
             <input type="text" name="title" placeholder="Highlight Title (e.g., Man Utd vs Liverpool)" value="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? hlToEdit.title : '' %>" required>

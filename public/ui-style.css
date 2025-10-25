@@ -346,6 +346,12 @@ footer {
     margin-top: 1rem;
 }
 
+.donation-address + .donation-address {
+    margin-top: 1rem; /* Add space between donation address blocks */
+}
+
+.copy-success-msg { display:none; color: #28a745; margin-top: 5px; }
+
 .address-container {
     display: flex;
     margin-top: 0.5rem;
