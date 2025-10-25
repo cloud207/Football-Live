@@ -14,7 +14,12 @@
             <div class="form-group">
                 <input type="text" name="team_a" placeholder="Team A Name" value="<%= match.team_a %>" required>
                 <input type="text" name="team_b" placeholder="Team B Name" value="<%= match.team_b %>" required>
-                <input type="text" name="league" placeholder="League (e.g., Premier League)" value="<%= match.league %>">
+                <input type="text" name="league" placeholder="League (e.g., Premier League)" value="<%= match.league %>" list="league-list">
+                <datalist id="league-list">
+                    <% leagues.forEach(l => { %>
+                        <option value="<%= l.league %>">
+                    <% }); %>
+                </datalist>
                 <% 
                     // match_time ကို datetime-local format နဲ့ ပြောင်း
                     const matchTime = new Date(match.match_time);
@@ -39,16 +44,19 @@
                     console.error("Error parsing stream_urls:", e);
                 }
             %>
-            <div class="form-group stream-inputs">
-                <input type="text" name="stream_1_name" placeholder="Stream 1 Name" value="<%= streams[0] ? streams[0].name : '' %>">
-                <input type="text" name="stream_1_url" placeholder="Stream 1 URL (M3U8)" value="<%= streams[0] ? streams[0].url : '' %>" required>
-                <input type="text" name="stream_2_name" placeholder="Stream 2 Name" value="<%= streams[1] ? streams[1].name : '' %>">
-                <input type="text" name="stream_2_url" placeholder="Stream 2 URL (M3U8)" value="<%= streams[1] ? streams[1].url : '' %>">
-                <input type="text" name="stream_3_name" placeholder="Stream 3 Name" value="<%= streams[2] ? streams[2].name : '' %>">
-                <input type="text" name="stream_3_url" placeholder="Stream 3 URL (M3U8)" value="<%= streams[2] ? streams[2].url : '' %>">
-                <input type="text" name="stream_4_name" placeholder="Stream 4 Name" value="<%= streams[3] ? streams[3].name : '' %>">
-                <input type="text" name="stream_4_url" placeholder="Stream 4 URL (M3U8)" value="<%= streams[3] ? streams[3].url : '' %>">
+            <div id="stream-inputs-container">
+                <% streams.forEach((stream, index) => { %>
+                    <div class="form-group stream-inputs">
+                        <input type="text" name="stream_name[]" placeholder="Stream <%= index + 1 %> Name" value="<%= stream.name %>">
+                        <input type="text" name="stream_url[]" placeholder="Stream <%= index + 1 %> URL (M3U8)" value="<%= stream.url %>" <%= index === 0 ? 'required' : '' %>>
+                        <% if (index > 0) { %>
+                            <button type="button" class="btn btn-delete" style="grid-column: 1 / -1;" onclick="removeStream(this)">Remove</button>
+                        <% } %>
+                    </div>
+                <% }); %>
             </div>
+            <button type="button" id="add-stream-btn" class="btn" style="background-color: var(--info-color); margin-bottom: 15px;">+ Add Another Stream</button>
+
 
             <div class="form-group" style="grid-template-columns: 1fr;">
                 <label style="display: flex; align-items: center; gap: 10px;">
@@ -61,5 +69,26 @@
             <a href="/admin" class="btn btn-cancel">Cancel</a>
         </form>
     </div>
+
+    <script>
+        document.getElementById('add-stream-btn').addEventListener('click', () => {
+            const container = document.getElementById('stream-inputs-container');
+            const streamCount = container.getElementsByClassName('stream-inputs').length + 1;
+
+            const newStreamGroup = document.createElement('div');
+            newStreamGroup.className = 'form-group stream-inputs';
+            newStreamGroup.innerHTML = `
+                <input type="text" name="stream_name[]" placeholder="Stream ${streamCount} Name">
+                <input type="text" name="stream_url[]" placeholder="Stream ${streamCount} URL (M3U8)">
+                <button type="button" class="btn btn-delete" style="grid-column: 1 / -1;" onclick="removeStream(this)">Remove</button>
+            `;
+            container.appendChild(newStreamGroup);
+        });
+
+        function removeStream(button) {
+            // button -> div.form-group -> remove
+            button.parentElement.remove();
+        }
+    </script>
 </body>
 </html>

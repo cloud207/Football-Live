@@ -11,7 +11,15 @@
     <div class="admin-container">
         <div class="admin-header">
             <h1>Admin Panel</h1>
-            <a href="/logout" class="btn btn-logout">Logout</a>
+            <div class="profile-dropdown">
+                <div class="profile-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="dropdown-content">
+                    <a href="/admin/change-credentials"><i class="fas fa-key"></i> Change Credentials</a>
+                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
         </div>
 
         <% if (typeof error !== 'undefined' && error) { %>
@@ -23,23 +31,25 @@
             <div class="form-group">
                 <input type="text" name="team_a" placeholder="Team A Name" required>
                 <input type="text" name="team_b" placeholder="Team B Name" required>
-                <input type="text" name="league" placeholder="League (e.g., Premier League)">
+                <input type="text" name="league" placeholder="League (e.g., Premier League)" list="league-list">
                 <input type="datetime-local" name="match_time" required>
                 <input type="text" name="team_a_logo" placeholder="Team A Logo URL">
                 <input type="text" name="team_b_logo" placeholder="Team B Logo URL">
             </div>
+            <datalist id="league-list">
+                <% leagues.forEach(l => { %>
+                    <option value="<%= l.league %>">
+                <% }); %>
+            </datalist>
 
             <h3 class="stream-header">Stream Links (at least one is required)</h3>
-            <div class="form-group stream-inputs">
-                <input type="text" name="stream_1_name" placeholder="Stream 1 Name (e.g., HD Stream)">
-                <input type="text" name="stream_1_url" placeholder="Stream 1 URL (M3U8)" required>
-                <input type="text" name="stream_2_name" placeholder="Stream 2 Name">
-                <input type="text" name="stream_2_url" placeholder="Stream 2 URL (M3U8)">
-                <input type="text" name="stream_3_name" placeholder="Stream 3 Name">
-                <input type="text" name="stream_3_url" placeholder="Stream 3 URL (M3U8)">
-                <input type="text" name="stream_4_name" placeholder="Stream 4 Name">
-                <input type="text" name="stream_4_url" placeholder="Stream 4 URL (M3U8)">
+            <div id="stream-inputs-container">
+                <div class="form-group stream-inputs">
+                    <input type="text" name="stream_name[]" placeholder="Stream 1 Name (e.g., HD Stream)">
+                    <input type="text" name="stream_url[]" placeholder="Stream 1 URL (M3U8)" required>
+                </div>
             </div>
+            <button type="button" id="add-stream-btn" class="btn" style="background-color: var(--info-color); margin-bottom: 15px;">+ Add Another Stream</button>
 
             <div class="form-group" style="grid-template-columns: 1fr;">
                 <label style="display: flex; align-items: center; gap: 10px;">
@@ -109,5 +119,27 @@
             </table>
         </div>
     </div>
+
+    <script>
+        document.getElementById('add-stream-btn').addEventListener('click', () => {
+            const container = document.getElementById('stream-inputs-container');
+            const streamCount = container.getElementsByClassName('stream-inputs').length + 1;
+
+            const newStreamGroup = document.createElement('div');
+            newStreamGroup.className = 'form-group stream-inputs';
+            newStreamGroup.innerHTML = `
+                <input type="text" name="stream_name[]" placeholder="Stream ${streamCount} Name">
+                <input type="text" name="stream_url[]" placeholder="Stream ${streamCount} URL (M3U8)">
+                <button type="button" class="btn btn-delete" style="grid-column: 1 / -1;" onclick="removeStream(this)">Remove</button>
+            `;
+            container.appendChild(newStreamGroup);
+        });
+
+        function removeStream(button) {
+            // button -> div.form-group -> remove
+            button.parentElement.remove();
+        }
+    </script>
+
 </body>
 </html>
