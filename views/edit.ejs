@@ -5,11 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Match - Admin Panel</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="admin-container">
-        <h1>Edit Match</h1>
+        <div class="admin-header">
+            <h1><i class="fas fa-cogs"></i> Admin Panel</h1>
+            <div class="profile-dropdown">
+                <i class="fas fa-user-circle profile-icon"></i>
+                <div class="dropdown-content">
+                    <a href="/admin/change-credentials"><i class="fas fa-key"></i> Change Credentials</a>
+                    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
 
+        <!-- Navigation Tabs -->
+        <%- include('admin-nav', { page: 'matches' }) %>
+        <h2>Edit Match</h2>
         <form action="/admin/edit/<%= match.id %>" method="POST" class="match-form">
             <div class="form-group">
                 <input type="text" name="team_a" placeholder="Team A Name" value="<%= match.team_a %>" required>

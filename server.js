@@ -275,6 +275,113 @@ app.get('/admin/delete/:id', checkAuth, (req, res) => {
     });
 });
 
+// --- Toggle & Delete Routes (checkAuth ထည့်ထား) ---
+
+// ပွဲစဉ်ကို Live/Not Live ပြောင်းခြင်း
+app.get('/admin/toggle_live/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    db.get("SELECT is_live FROM matches WHERE id = ?", [id], (err, row) => {
+        if (err) { return console.error(err.message); }
+        const newLiveStatus = row.is_live === 0 ? 1 : 0; 
+        const updateSql = "UPDATE matches SET is_live = ? WHERE id = ?";
+        db.run(updateSql, [newLiveStatus, id], (err) => {
+            if (err) { return console.error(err.message); }
+            res.redirect('/admin');
+        });
+    });
+});
+
+// ပွဲစဉ်ကို ဖျက်ခြင်း
+app.get('/admin/delete/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM matches WHERE id = ?";
+    db.run(sql, [id], (err) => {
+        if (err) { return console.error(err.message); }
+        res.redirect('/admin');
+    });
+});
+
+// --- Highlights Management Routes (New) ---
+
+// Show the highlights management page
+app.get('/admin/highlights', checkAuth, (req, res) => {
+    const sql = "SELECT * FROM highlights ORDER BY created_at DESC";
+    db.all(sql, [], (err, highlights) => {
+        if (err) {
+            return res.render('admin-highlights', { highlights: [], error: err.message });
+        }
+        res.render('admin-highlights', { highlights: highlights, error: req.query.error, hlToEdit: undefined });
+    });
+});
+
+// Add a new highlight
+app.post('/admin/highlights/add', checkAuth, (req, res) => {
+    const { title, thumbnail_url, video_url } = req.body;
+    if (!title || !video_url) {
+        return res.redirect('/admin/highlights?error=' + encodeURIComponent('Title and Video URL are required.'));
+    }
+
+    const sql = `INSERT INTO highlights (title, thumbnail_url, video_url) VALUES (?, ?, ?)`;
+    db.run(sql, [title, thumbnail_url, video_url], (err) => {
+        if (err) {
+            console.error("Failed to add highlight:", err.message);
+            return res.redirect('/admin/highlights?error=' + encodeURIComponent(err.message));
+        }
+        res.redirect('/admin/highlights');
+    });
+});
+
+// Show the edit form for a highlight
+app.get('/admin/highlights/edit/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    const highlightSql = "SELECT * FROM highlights WHERE id = ?";
+    const allHighlightsSql = "SELECT * FROM highlights ORDER BY created_at DESC";
+
+    db.get(highlightSql, [id], (err, hlToEdit) => {
+        if (err) {
+            return res.redirect('/admin/highlights?error=' + encodeURIComponent(err.message));
+        }
+        if (!hlToEdit) {
+            return res.redirect('/admin/highlights?error=' + encodeURIComponent('Highlight not found.'));
+        }
+        db.all(allHighlightsSql, [], (err, highlights) => {
+            if (err) {
+                // Pass the highlight to edit even if fetching the list fails
+                return res.render('admin-highlights', { highlights: [], hlToEdit: hlToEdit, error: err.message });
+            }
+            res.render('admin-highlights', { highlights: highlights, hlToEdit: hlToEdit, error: null });
+        });
+    });
+});
+
+// Handle the update for a highlight
+app.post('/admin/highlights/edit/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    const { title, thumbnail_url, video_url } = req.body;
+
+    const sql = `UPDATE highlights SET title = ?, thumbnail_url = ?, video_url = ? WHERE id = ?`;
+    db.run(sql, [title, thumbnail_url, video_url, id], (err) => {
+        if (err) {
+            console.error("Failed to update highlight:", err.message);
+            return res.redirect('/admin/highlights?error=' + encodeURIComponent(err.message));
+        }
+        res.redirect('/admin/highlights');
+    });
+});
+
+// Delete a highlight
+app.get('/admin/highlights/delete/:id', checkAuth, (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM highlights WHERE id = ?";
+    db.run(sql, [id], (err) => {
+        if (err) {
+            console.error("Failed to delete highlight:", err.message);
+            return res.redirect('/admin/highlights?error=' + encodeURIComponent(err.message));
+        }
+        res.redirect('/admin/highlights');
+    });
+});
+
 
 // --- Public API Route (ဒါက Login မလိုပါ) ---
 app.get('/api/live_matches', (req, res) => {
@@ -307,6 +414,18 @@ app.get('/api/upcoming_matches', (req, res) => {
             return;
         }
         res.json(rows); // Data ကို JSON ပုံစံနဲ့ ပြန်ပေးမယ်
+    });
+});
+
+// --- Public API Route (Highlights) ---
+app.get('/api/highlights', (req, res) => { // This was already here from a previous step
+    const sql = "SELECT * FROM highlights ORDER BY created_at DESC LIMIT 12"; // နောက်ဆုံး ၁၂ ခုပဲပြမယ်
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
     });
 });
 

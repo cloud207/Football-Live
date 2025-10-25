@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Highlights</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="admin-container">
+    <div class="admin-header">
+        <h1><i class="fas fa-cogs"></i> Admin Panel</h1>
+        <div class="profile-dropdown">
+            <i class="fas fa-user-circle profile-icon"></i>
+            <div class="dropdown-content">
+                <a href="/admin/change-credentials"><i class="fas fa-key"></i> Change Credentials</a>
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <%- include('admin-nav', { page: 'highlights' }) %>
+
+    <!-- Add Highlight Form -->
+    <h2><%= typeof hlToEdit !== 'undefined' && hlToEdit ? 'Edit Highlight' : 'Add New Highlight' %></h2>
+    <form class="match-form" action="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? '/admin/highlights/edit/' + hlToEdit.id : '/admin/highlights/add' %>" method="POST">
+        <div class="form-group">
+            <input type="text" name="title" placeholder="Highlight Title (e.g., Man Utd vs Liverpool)" value="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? hlToEdit.title : '' %>" required>
+        </div>
+        <div class="form-group">
+            <input type="url" name="video_url" placeholder="Video URL (e.g., .m3u8 link)" value="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? hlToEdit.video_url : '' %>" required>
+        </div>
+        <div class="form-group">
+            <input type="url" name="thumbnail_url" placeholder="Thumbnail Image URL (Optional)" value="<%= typeof hlToEdit !== 'undefined' && hlToEdit ? hlToEdit.thumbnail_url : '' %>">
+        </div>
+        <% if (typeof hlToEdit !== 'undefined' && hlToEdit) { %>
+            <button type="submit" class="btn"><i class="fas fa-save"></i> Update Highlight</button>
+            <a href="/admin/highlights" class="btn btn-cancel">Cancel</a>
+        <% } else { %>
+            <button type="submit" class="btn"><i class="fas fa-plus"></i> Add Highlight</button>
+        <% } %>
+    </form>
+
+    <!-- Highlights Table -->
+    <h2>Existing Highlights</h2>
+    <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+    <% } %>
+    <div class="table-wrapper">
+        <table class="match-table">
+            <thead>
+                <tr>
+                    <th>Thumbnail</th>
+                    <th>Title</th>
+                    <th>Video URL</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (highlights.length > 0) { %>
+                    <% highlights.forEach(hl => { %>
+                        <tr>
+                            <td>
+                                <img src="<%= hl.thumbnail_url || 'https://placehold.co/100x56/2a2a2a/ccc?text=No+Image' %>" alt="Thumbnail" style="width: 100px; height: auto; border-radius: 4px;">
+                            </td>
+                            <td><%= hl.title %></td>
+                            <td style="word-break: break-all;"><%= hl.video_url %></td>
+                            <td class="actions">
+                                <a href="/admin/highlights/edit/<%= hl.id %>" class="btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="/admin/highlights/delete/<%= hl.id %>" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this highlight?');"><i class="fas fa-trash"></i> Delete</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No highlights found.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

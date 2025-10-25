@@ -224,4 +224,76 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ၅ မိနစ် (300000 ms) တိုင်း data အသစ် ထပ်တောင်းမယ်
     setInterval(fetchUpcomingMatches, 300000); 
+
+    // ===========================================
+    // === HIGHLIGHTS LOGIC (အသစ်) ===
+    // ===========================================
+
+    const highlightsGrid = document.getElementById('highlights-grid');
+    const noHighlightsMsg = document.getElementById('no-highlights-msg');
+
+    async function fetchHighlights() {
+        try {
+            // highlight data တောင်းမယ့် API endpoint (server.js မှာ ဖန်တီးရန်)
+            const response = await fetch('/api/highlights');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const highlights = await response.json();
+            displayHighlights(highlights);
+
+        } catch (error) {
+            console.error('Failed to fetch highlights:', error);
+            if(highlightsGrid) highlightsGrid.innerHTML = '<p style="color: red; text-align: center;">Failed to load highlights.</p>';
+        }
+    }
+
+    function displayHighlights(highlights) {
+        if (!highlightsGrid) return;
+        highlightsGrid.innerHTML = ''; 
+
+        if (highlights.length === 0) {
+            if(noHighlightsMsg) noHighlightsMsg.style.display = 'block';
+        } else {
+            if(noHighlightsMsg) noHighlightsMsg.style.display = 'none';
+
+            highlights.forEach(highlight => {
+                const highlightCard = document.createElement('a');
+                highlightCard.className = 'highlight-card';
+                
+                // Thumbnail ပုံကို card ရဲ့ background အဖြစ် သတ်မှတ်
+                const thumbnailUrl = highlight.thumbnail_url || 'https://placehold.co/400x225/1a1a1a/ccc?text=Highlight';
+                highlightCard.style.backgroundImage = `url('${thumbnailUrl}')`;
+
+                // watch.html ကို data ပို့ရန် event listener
+                highlightCard.href = `watch.html`;
+                highlightCard.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    // Highlight data ကို sessionStorage မှာ သိမ်း
+                    sessionStorage.setItem('watch_data', JSON.stringify({
+                        title: highlight.title,
+                        // Highlight မှာ stream တစ်ခုတည်းသာ ရှိတဲ့အတွက် array of object အဖြစ် တည်ဆောက်
+                        streams: JSON.stringify([{ name: 'Highlight', url: highlight.video_url }]),
+                        isHighlight: true, // Highlight ဖြစ်ကြောင်း flag ထည့်ပေး
+                        videoType: highlight.video_url.toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'application/x-mpegURL'
+                    }));
+
+                    window.location.href = 'watch.html';
+                });
+
+                highlightCard.innerHTML = `
+                    <div class="overlay">
+                        <span class="highlight-title">${highlight.title}</span>
+                    </div>
+                    <div class="play-overlay"><i class="fas fa-play"></i></div>
+                `;
+                
+                highlightsGrid.appendChild(highlightCard);
+            });
+        }
+    }
+
+    // Page စဖွင့်ဖွင့်ချင်း API ကို စခေါ်မယ်
+    fetchHighlights();
 });

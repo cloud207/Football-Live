@@ -230,6 +230,10 @@ footer {
 .back-link:hover {
     text-decoration: underline;
 }
+.no-stream-message {
+    color: #aaa;
+    padding: 1rem;
+}
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
@@ -244,6 +248,9 @@ footer {
 /* --- Upcoming Matches Section --- */
 .upcoming-matches {
     margin-top: 3rem; /* Add space above the upcoming matches section */
+}
+.highlights {
+    margin-top: 3rem;
 }
 
 
@@ -365,4 +372,50 @@ footer {
 
 .address-container button:hover {
     background-color: #444;
+}
+
+/* --- Highlight Card Styles (New) --- */
+.highlight-card {
+    display: block;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #333;
+    aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
+    background-size: cover;
+    background-position: center;
+    background-color: #222; /* Placeholder color */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.highlight-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(30, 144, 255, 0.2);
+    border-color: #1e90ff;
+}
+
+.highlight-card .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.1) 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+    opacity: 1;
+    transition: background 0.3s ease;
+}
+
+.highlight-card:hover .overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.2) 70%);
+}
+
+.highlight-card .highlight-title {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.3;
 }

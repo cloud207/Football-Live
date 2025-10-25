@@ -9,26 +9,29 @@ const db = new sqlite3.Database('./football.db', (err) => {
     console.log('Connected to the football.db database.');
 });
 
-// Database table ကို တည်ဆောက်မယ့် SQL
-const createTableSql = `
-CREATE TABLE IF NOT EXISTS matches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    team_a TEXT NOT NULL,
-    team_b TEXT NOT NULL,
-    league TEXT,
-    match_time TEXT NOT NULL,
-    stream_url TEXT NOT NULL,
-    is_live INTEGER DEFAULT 0
-    -- The 'auto_live' and 'stream_urls' columns should be added via migration scripts, not here.
-);
-`;
-// is_live: 0 = Not Live, 1 = Live
-
-db.run(createTableSql, (err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log("Matches table created or already exists.");
+db.serialize(() => {
+    // Database table ကို တည်ဆောက်မယ့် SQL
+    const createTableSql = `
+    CREATE TABLE IF NOT EXISTS matches (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        team_a TEXT NOT NULL,
+        team_b TEXT NOT NULL,
+        league TEXT,
+        match_time TEXT NOT NULL,
+        stream_url TEXT NOT NULL,
+        is_live INTEGER DEFAULT 0
+    );
+    `;
+    db.run(createTableSql, (err) => { if (err) console.error(err.message); });
+    
+    // Highlight table အသစ်
+    db.run(`CREATE TABLE IF NOT EXISTS highlights (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        thumbnail_url TEXT,
+        video_url TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
 });
 
 module.exports = db;
