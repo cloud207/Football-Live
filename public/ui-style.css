@@ -355,7 +355,7 @@ footer {
 
 .address-container button {
     padding: 8px 12px;
-    background-color: #1e90ff;
+    background-color: #333;
     color: white;
     border: none;
     cursor: pointer;
@@ -364,5 +364,5 @@ footer {
 }
 
 .address-container button:hover {
-    background-color: #1c86f0;
+    background-color: #444;
 }

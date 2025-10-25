@@ -44,6 +44,53 @@ body {
     border: 1px solid var(--border-color);
 }
 
+.login-form h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: var(--primary-accent);
+    border-bottom: none;
+}
+
+.login-form .form-group {
+    grid-template-columns: 1fr; /* Login form မှာ 1 column ပဲထားမယ် */
+    margin-bottom: 20px;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+.error-message {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--danger-color);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 .admin-container {
     max-width: 1400px;
     margin: 0 auto;
