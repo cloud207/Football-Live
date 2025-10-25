@@ -3,13 +3,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./database.js');
 const session = require('express-session');
+const dotenv = require('dotenv');
+const fs = require('fs');
+const path = require('path');
+
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
-
-// --- Admin Login Credentials ---
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'password123'; // (ဒီနေရာမှာ ပြောင်းပါ)
 
 // EJS
 app.set('view engine', 'ejs');
@@ -22,7 +23,7 @@ app.use(express.static('public'));
 
 // --- Session Middleware ---
 app.use(session({
-    secret: 'YOUR_VERY_STRONG_SECRET_KEY', // (ဒီစာတန်းကို ပြောင်းလိုက်ပါ)
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
@@ -47,7 +48,7 @@ app.get('/login', (req, res) => {
 // Login ဝင်မဝင် စစ်ဆေးခြင်း
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
+    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
         req.session.loggedin = true;
         res.redirect('/admin');
     } else {
@@ -65,17 +66,16 @@ app.get('/logout', (req, res) => {
 // --- Helper function (Stream JSON အတွက်) ---
 function buildStreamJson(body) {
     const streams = [];
-    if (body.stream_1_url) {
-        streams.push({ name: body.stream_1_name || 'Stream 1', url: body.stream_1_url });
-    }
-    if (body.stream_2_url) {
-        streams.push({ name: body.stream_2_name || 'Stream 2', url: body.stream_2_url });
-    }
-    if (body.stream_3_url) {
-        streams.push({ name: body.stream_3_name || 'Stream 3', url: body.stream_3_url });
-    }
-    if (body.stream_4_url) {
-        streams.push({ name: body.stream_4_name || 'Stream 4', url: body.stream_4_url });
+    // Check if stream_url is an array (from dynamic inputs)
+    if (Array.isArray(body.stream_url)) {
+        for (let i = 0; i < body.stream_url.length; i++) {
+            // Only add if the URL is not empty
+            if (body.stream_url[i]) {
+                streams.push({ name: body.stream_name[i] || `Stream ${i + 1}`, url: body.stream_url[i] });
+            }
+        }
+    } else if (body.stream_url) { // Fallback for single stream
+        streams.push({ name: body.stream_name || 'Stream 1', url: body.stream_url });
     }
     return JSON.stringify(streams);
 }
@@ -85,12 +85,19 @@ function buildStreamJson(body) {
 
 // Admin Panel ပင်မ စာမျက်နှာ (checkAuth ထည့်ထား)
 app.get('/admin', checkAuth, (req, res) => {
-    const sql = "SELECT * FROM matches ORDER BY match_time DESC";
-    db.all(sql, [], (err, rows) => {
+    const matchesSql = "SELECT * FROM matches ORDER BY match_time DESC";
+    const leaguesSql = "SELECT DISTINCT league FROM matches WHERE league IS NOT NULL AND league != '' ORDER BY league";
+
+    db.all(matchesSql, [], (err, matches) => {
         if (err) {
-            return console.error(err.message);
+            return res.render('admin', { matches: [], leagues: [], error: err.message });
         }
-        res.render('admin', { matches: rows });
+        db.all(leaguesSql, [], (err, leagues) => {
+            if (err) {
+                return res.render('admin', { matches: matches, leagues: [], error: err.message });
+            }
+            res.render('admin', { matches: matches, leagues: leagues, error: req.query.error });
+        });
     });
 });
 
@@ -101,7 +108,7 @@ app.post('/admin/add_match', checkAuth, (req, res) => {
     
     // === FIX START ===
     // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
-    const legacyStreamUrl = req.body.stream_1_url || ''; 
+    const legacyStreamUrl = Array.isArray(req.body.stream_url) ? req.body.stream_url[0] : req.body.stream_url || '';
 
     // SQL query ထဲ 'stream_url' (အဟောင်း) နဲ့ 'auto_live' ကိုပါ ထပ်ထည့်ပါ
     const sql = `INSERT INTO matches (
@@ -134,14 +141,21 @@ app.post('/admin/add_match', checkAuth, (req, res) => {
 app.get('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
     const sql = "SELECT * FROM matches WHERE id = ?";
-    db.get(sql, [id], (err, row) => {
+    const leaguesSql = "SELECT DISTINCT league FROM matches WHERE league IS NOT NULL AND league != '' ORDER BY league";
+
+    db.get(sql, [id], (err, match) => {
         if (err) {
-            return console.error(err.message);
+            return res.redirect('/admin?error=' + encodeURIComponent(err.message));
         }
-        if (!row) {
+        if (!match) {
             return res.redirect('/admin'); // Match မရှိရင် admin page ပြန်ပို့
         }
-        res.render('edit', { match: row });
+        db.all(leaguesSql, [], (err, leagues) => {
+            if (err) {
+                return res.redirect('/admin?error=' + encodeURIComponent(err.message));
+            }
+            res.render('edit', { match: match, leagues: leagues });
+        });
     });
 });
 
@@ -153,7 +167,7 @@ app.post('/admin/edit/:id', checkAuth, (req, res) => {
 
     // === FIX START ===
     // column အဟောင်း (stream_url) အတွက် default value တစ်ခု ယူပါ
-    const legacyStreamUrl = req.body.stream_1_url || '';
+    const legacyStreamUrl = Array.isArray(req.body.stream_url) ? req.body.stream_url[0] : req.body.stream_url || '';
     
     // SQL query ထဲ 'stream_url' (အဟောင်း) နဲ့ 'auto_live' ကိုပါ ထပ်ထည့်ပါ
     const sql = `UPDATE matches SET 
@@ -185,6 +199,54 @@ app.post('/admin/edit/:id', checkAuth, (req, res) => {
         console.log(`Match ${id} has been updated.`);
         res.redirect('/admin');
     });
+});
+
+// --- Change Credentials Routes (New) ---
+
+// Show the form to change credentials
+app.get('/admin/change-credentials', checkAuth, (req, res) => {
+    res.render('change-credentials', { error: null, message: null });
+});
+
+// Handle the form submission
+app.post('/admin/change-credentials', checkAuth, (req, res) => {
+    const { current_password, new_username, new_password } = req.body;
+
+    // 1. Verify current password
+    if (current_password !== process.env.ADMIN_PASS) {
+        return res.render('change-credentials', { 
+            error: 'Incorrect current password.', 
+            message: null 
+        });
+    }
+
+    // 2. Check if at least one new value is provided
+    if (!new_username && !new_password) {
+        return res.render('change-credentials', { 
+            error: 'Please provide a new username or a new password.', 
+            message: null 
+        });
+    }
+
+    // 3. Update environment variables and .env file
+    const newAdminUser = new_username || process.env.ADMIN_USER;
+    const newAdminPass = new_password || process.env.ADMIN_PASS;
+
+    try {
+        const envPath = path.resolve(__dirname, '.env');
+        let envFileContent = fs.readFileSync(envPath, 'utf-8');
+        envFileContent = envFileContent.replace(/^ADMIN_USER=.*/m, `ADMIN_USER=${newAdminUser}`);
+        envFileContent = envFileContent.replace(/^ADMIN_PASS=.*/m, `ADMIN_PASS=${newAdminPass}`);
+        fs.writeFileSync(envPath, envFileContent);
+
+        // Update current process env
+        process.env.ADMIN_USER = newAdminUser;
+        process.env.ADMIN_PASS = newAdminPass;
+
+        res.render('change-credentials', { error: null, message: 'Credentials updated successfully!' });
+    } catch (err) {
+        res.render('change-credentials', { error: 'Error writing to .env file. Please check file permissions.', message: null });
+    }
 });
 
 // --- Toggle & Delete Routes (checkAuth ထည့်ထား) ---
