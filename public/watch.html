@@ -154,14 +154,35 @@
             const watchData = JSON.parse(watchDataString);
             const matchTitle = watchData.title;
             const allStreamsJson = watchData.streams;
-            let defaultStreamUrl = '';
             const isHighlight = watchData.isHighlight || false;
+            const isYouTube = watchData.isYouTube || false;
             // app.js ကနေ video type ကို ယူသုံးမယ်။ မပါခဲ့ရင် HLS ကို default ထားမယ်။
             const videoType = watchData.videoType || 'application/x-mpegURL';
-
+            let defaultStreamUrl = '';
 
             if (matchTitle) {
                 matchTitleElement.textContent = matchTitle;
+            }
+
+            // YouTube video ဖြစ်နေရင် iframe ကိုသုံးပြီး Video.js player ကို ဖျောက်မယ်
+            if (isYouTube) {
+                const videoId = watchData.videoId;
+                const playerWrapper = document.querySelector('.video-player-wrapper');
+                
+                // Video.js player element ကို ဖျောက်/ဖျက်
+                videoPlayerElement.style.display = 'none';
+
+                // Stream switcher ကို ဖျောက်
+                document.querySelector('.stream-switcher').style.display = 'none';
+
+                // YouTube iframe ကို တည်ဆောက်
+                const iframe = document.createElement('iframe');
+                iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`);
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                iframe.setAttribute('allowfullscreen', '');
+                playerWrapper.appendChild(iframe); // wrapper ထဲကို ထည့်
+                return; // YouTube ဖြစ်တဲ့အတွက် အောက်က Video.js logic တွေ အလုပ်မလုပ်တော့အောင် ဒီမှာတင် ရပ်လိုက်မယ်
             }
 
             // Video.js player ကို စတင် သတ်မှတ်မယ်

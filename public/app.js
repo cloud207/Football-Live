@@ -187,12 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // ပွဲကစားမယ့် အချိန်ကို format လုပ်မယ်
                 const matchTime = new Date(match.match_time);
-                // ဥပမာ: "10/25, 9:30 PM"
-                const formattedTime = matchTime.toLocaleString([], { 
+                // ဥပမာ: "10/25, 9:30 PM EDT"
+                const formattedTime = matchTime.toLocaleString('en-US', { 
+                    timeZone: 'America/New_York', // EDT time zone
                     month: 'numeric', 
                     day: 'numeric', 
                     hour: '2-digit', 
-                    minute: '2-digit' 
+                    minute: '2-digit',
+                    timeZoneName: 'short'
                 });
 
                 // Card HTML ဒီဇိုင်း (Live dot အစား အချိန်ကို ပြမယ်)
@@ -269,20 +271,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 highlightCard.href = `watch.html`;
                 highlightCard.addEventListener('click', (event) => {
                     event.preventDefault();
+                    
+                    const videoId = getYouTubeVideoId(highlight.video_url);
+                    let watchData;
 
-                    // Highlight data ကို sessionStorage မှာ သိမ်း
-                    sessionStorage.setItem('watch_data', JSON.stringify({
-                        title: highlight.title,
-                        // Highlight မှာ stream တစ်ခုတည်းသာ ရှိတဲ့အတွက် array of object အဖြစ် တည်ဆောက်
-                        streams: JSON.stringify([{ name: 'Highlight', url: highlight.video_url }]),
-                        isHighlight: true, // Highlight ဖြစ်ကြောင်း flag ထည့်ပေး
-                        videoType: highlight.video_url.toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'application/x-mpegURL'
-                    }));
+                    if (videoId) {
+                        // YouTube video ဖြစ်လျှင်
+                        watchData = {
+                            title: highlight.title,
+                            isYouTube: true,
+                            videoId: videoId
+                        };
+                    } else {
+                        // Direct stream (M3U8/MP4) ဖြစ်လျှင်
+                        watchData = {
+                            title: highlight.title,
+                            streams: JSON.stringify([{ name: 'Highlight', url: highlight.video_url }]),
+                            isHighlight: true,
+                            videoType: highlight.video_url.toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'application/x-mpegURL'
+                        };
+                    }
+
+                    sessionStorage.setItem('watch_data', JSON.stringify(watchData));
 
                     window.location.href = 'watch.html';
                 });
 
                 highlightCard.innerHTML = `
+                    ${'' /* YouTube icon ထည့်ရန် */}
+                    ${getYouTubeVideoId(highlight.video_url) ? 
+                        `<div class="source-icon-overlay">
+                            <i class="fab fa-youtube"></i>
+                         </div>` 
+                        : ''
+                    }
                     <div class="overlay">
                         <span class="highlight-title">${highlight.title}</span>
                     </div>
@@ -292,6 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 highlightsGrid.appendChild(highlightCard);
             });
         }
+    }
+
+    // YouTube URL ကနေ Video ID ကို ထုတ်ယူပေးမယ့် function
+    function getYouTubeVideoId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2].length === 11) {
+            return match[2];
+        }
+        return null;
     }
 
     // Page စဖွင့်ဖွင့်ချင်း API ကို စခေါ်မယ်

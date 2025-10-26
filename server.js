@@ -103,7 +103,8 @@ app.get('/admin', checkAuth, (req, res) => {
 
 // ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/add_match', checkAuth, (req, res) => {
-    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
+    let { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
+    if (match_time) match_time = match_time + 'Z'; // Treat time as UTC
     const streamUrlsJson = buildStreamJson(req.body);
     
     // === FIX START ===
@@ -162,7 +163,8 @@ app.get('/admin/edit/:id', checkAuth, (req, res) => {
 // Edit data တွေကို Update လုပ်ခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
-    const { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
+    let { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
+    if (match_time) match_time = match_time + 'Z'; // Treat time as UTC
     const streamUrlsJson = buildStreamJson(req.body);
 
     // === FIX START ===
