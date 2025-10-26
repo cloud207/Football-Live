@@ -432,16 +432,16 @@ app.get('/api/highlights', (req, res) => { // This was already here from a previ
 // --- Auto-Live Scheduler ---
 // 1 မိနစ် (60000 ms) တိုင်း database ကို စစ်ဆေးပြီး ပွဲချိန်ရောက်ရင် Live ပြောင်းပေးမယ်
 setInterval(() => {
-    const now = new Date().toISOString(); // လက်ရှိအချိန်ကို ISO format နဲ့ ယူမယ်
+    // FIX: 'now' ကို UTC အဖြစ် သတ်မှတ်မယ့်အစား 'localtime' modifier ကိုသုံးပြီး server ရဲ့ local time နဲ့ နှိုင်းယှဉ်ပါမယ်။
     const sql = `
         UPDATE matches
         SET is_live = 1
         WHERE 
             is_live = 0 AND 
             auto_live = 1 AND 
-            datetime(match_time) <= datetime(?)
+            datetime(match_time) <= datetime('now', 'localtime')
     `;
-    db.run(sql, [now], function(err) {
+    db.run(sql, [], function(err) { // `now` variable မလိုတော့ပါ
         if (err) {
             console.error('Auto-Live Scheduler Error:', err.message);
         } else if (this.changes > 0) {
