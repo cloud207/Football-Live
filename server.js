@@ -277,32 +277,6 @@ app.get('/admin/delete/:id', checkAuth, (req, res) => {
     });
 });
 
-// --- Toggle & Delete Routes (checkAuth ထည့်ထား) ---
-
-// ပွဲစဉ်ကို Live/Not Live ပြောင်းခြင်း
-app.get('/admin/toggle_live/:id', checkAuth, (req, res) => {
-    const id = req.params.id;
-    db.get("SELECT is_live FROM matches WHERE id = ?", [id], (err, row) => {
-        if (err) { return console.error(err.message); }
-        const newLiveStatus = row.is_live === 0 ? 1 : 0; 
-        const updateSql = "UPDATE matches SET is_live = ? WHERE id = ?";
-        db.run(updateSql, [newLiveStatus, id], (err) => {
-            if (err) { return console.error(err.message); }
-            res.redirect('/admin');
-        });
-    });
-});
-
-// ပွဲစဉ်ကို ဖျက်ခြင်း
-app.get('/admin/delete/:id', checkAuth, (req, res) => {
-    const id = req.params.id;
-    const sql = "DELETE FROM matches WHERE id = ?";
-    db.run(sql, [id], (err) => {
-        if (err) { return console.error(err.message); }
-        res.redirect('/admin');
-    });
-});
-
 // --- Highlights Management Routes (New) ---
 
 // Show the highlights management page
@@ -459,81 +433,6 @@ app.get('/admin/channels/delete/:id', checkAuth, (req, res) => {
     });
 });
 
-// --- 24/7 Channels Management Routes (New) ---
-
-// Show the channels management page
-app.get('/admin/channels', checkAuth, (req, res) => {
-    const sql = "SELECT * FROM channels ORDER BY created_at DESC";
-    db.all(sql, [], (err, channels) => {
-        if (err) {
-            // If admin-channels.ejs doesn't exist yet, this will error.
-            // We assume it will be created.
-            return res.render('admin-channels', { channels: [], error: err.message, channelToEdit: null });
-        }
-        res.render('admin-channels', { channels: channels, error: req.query.error, channelToEdit: null });
-    });
-});
-
-// Add a new channel
-app.post('/admin/channels/add', checkAuth, (req, res) => {
-    const { name, logo_url, stream_url } = req.body;
-    if (!name || !stream_url) {
-        return res.redirect('/admin/channels?error=' + encodeURIComponent('Channel Name and Stream URL are required.'));
-    }
-
-    const sql = `INSERT INTO channels (name, logo_url, stream_url) VALUES (?, ?, ?)`;
-    db.run(sql, [name, logo_url, stream_url], (err) => {
-        if (err) {
-            console.error("Failed to add channel:", err.message);
-            return res.redirect('/admin/channels?error=' + encodeURIComponent(err.message));
-        }
-        res.redirect('/admin/channels');
-    });
-});
-
-// Show the edit form for a channel
-app.get('/admin/channels/edit/:id', checkAuth, (req, res) => {
-    const id = req.params.id;
-    const channelSql = "SELECT * FROM channels WHERE id = ?";
-    const allChannelsSql = "SELECT * FROM channels ORDER BY created_at DESC";
-
-    db.get(channelSql, [id], (err, channelToEdit) => {
-        if (err || !channelToEdit) {
-            const errorMsg = err ? err.message : 'Channel not found.';
-            return res.redirect('/admin/channels?error=' + encodeURIComponent(errorMsg));
-        }
-        db.all(allChannelsSql, [], (err, channels) => {
-            if (err) {
-                return res.render('admin-channels', { channels: [], channelToEdit: channelToEdit, error: err.message });
-            }
-            res.render('admin-channels', { channels: channels, channelToEdit: channelToEdit, error: null });
-        });
-    });
-});
-
-// Handle the update for a channel
-app.post('/admin/channels/edit/:id', checkAuth, (req, res) => {
-    const id = req.params.id;
-    const { name, logo_url, stream_url } = req.body;
-    const sql = `UPDATE channels SET name = ?, logo_url = ?, stream_url = ? WHERE id = ?`;
-    db.run(sql, [name, logo_url, stream_url, id], (err) => {
-        if (err) {
-            return res.redirect('/admin/channels?error=' + encodeURIComponent(err.message));
-        }
-        res.redirect('/admin/channels');
-    });
-});
-
-// Delete a channel
-app.get('/admin/channels/delete/:id', checkAuth, (req, res) => {
-    const id = req.params.id;
-    const sql = "DELETE FROM channels WHERE id = ?";
-    db.run(sql, [id], (err) => {
-        if (err) { return res.redirect('/admin/channels?error=' + encodeURIComponent(err.message)); }
-        res.redirect('/admin/channels');
-    });
-});
-
 
 // --- Public API Route (ဒါက Login မလိုပါ) ---
 app.get('/api/live_matches', (req, res) => {
@@ -555,8 +454,8 @@ app.get('/api/upcoming_matches', (req, res) => {
     const sql = `
         SELECT * FROM matches 
         WHERE 
-            is_live = 0 AND 
-            datetime(match_time) > datetime('now')
+            is_live = 0 AND
+            datetime(match_time) > datetime('now', '+6 hours', '+30 minutes')
         ORDER BY match_time ASC
         LIMIT 10`; // (ပွဲတွေ အရမ်းများမနေအောင် ၁၀ ပွဲပဲ ကန့်သတ်ထားမယ်)
 
@@ -572,18 +471,6 @@ app.get('/api/upcoming_matches', (req, res) => {
 // --- Public API Route (Highlights) ---
 app.get('/api/highlights', (req, res) => { // This was already here from a previous step
     const sql = "SELECT * FROM highlights ORDER BY created_at DESC LIMIT 12"; // နောက်ဆုံး ၁၂ ခုပဲပြမယ်
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
-});
-
-// --- Public API Route (24/7 Channels) ---
-app.get('/api/channels', (req, res) => {
-    const sql = "SELECT * FROM channels ORDER BY name ASC";
     db.all(sql, [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
