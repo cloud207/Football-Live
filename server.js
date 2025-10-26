@@ -608,16 +608,16 @@ app.get('/api/channels', (req, res) => {
 // --- Auto-Live Scheduler ---
 // 1 မိနစ် (60000 ms) တိုင်း database ကို စစ်ဆေးပြီး ပွဲချိန်ရောက်ရင် Live ပြောင်းပေးမယ်
 setInterval(() => {
-    const now = new Date(); // Use local server time
+    // SQLite ကို လက်ရှိ UTC အချိန်ကိုယူပြီး +6 နာရီ 30 မိနစ် ပေါင်းခိုင်းခြင်းဖြင့် MMT အချိန်ကို ရယူပါ
     const sql = `
         UPDATE matches
         SET is_live = 1
         WHERE 
             is_live = 0 AND 
             auto_live = 1 AND 
-            datetime(match_time) <= datetime(?)
+            datetime(match_time) <= datetime('now', '+6 hours', '+30 minutes')
     `;
-    db.run(sql, [now.toISOString()], function(err) {
+    db.run(sql, [], function(err) {
         if (err) {
             console.error('Auto-Live Scheduler Error:', err.message);
         } else if (this.changes > 0) {

@@ -187,12 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // ပွဲကစားမယ့် အချိန်ကို format လုပ်မယ်
                 const matchTime = new Date(match.match_time);
-                // ဥပမာ: "10/25, 9:30 PM" (User's local time)
-                const formattedTime = matchTime.toLocaleString([], { 
+                // အချိန်ကို Myanmar Time (UTC+6:30) အဖြစ် ပြောင်းလဲပြသရန်
+                const formattedTime = matchTime.toLocaleString('en-US', { 
+                    timeZone: 'Asia/Yangon',
                     month: 'numeric', 
                     day: 'numeric', 
                     hour: '2-digit', 
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    timeZoneName: 'short'
                 });
 
                 // Card HTML ဒီဇိုင်း (Live dot အစား အချိန်ကို ပြမယ်)
