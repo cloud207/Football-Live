@@ -32,6 +32,24 @@ db.serialize(() => {
         video_url TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    // 24/7 Channels table (New)
+    db.run(`CREATE TABLE IF NOT EXISTS channels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        logo_url TEXT,
+        stream_url TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // 24/7 Channels table (New)
+    db.run(`CREATE TABLE IF NOT EXISTS channels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        logo_url TEXT,
+        stream_url TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
 });
 
 module.exports = db;

@@ -2,23 +2,20 @@
     .admin-nav {
         display: flex;
         gap: 10px;
-        margin-bottom: 2rem;
+        margin-bottom: 20px;
         border-bottom: 1px solid var(--border-color);
-        padding-bottom: 1rem;
+        padding-bottom: 15px;
     }
     .admin-nav a {
-        padding: 10px 15px;
-        text-decoration: none;
-        color: var(--text-secondary);
+        padding: 8px 15px;
         border-radius: 5px;
-        transition: background-color 0.2s, color 0.2s;
-    }
-    .admin-nav a.active, .admin-nav a:hover {
-        background-color: var(--dark-bg-tertiary);
+        text-decoration: none;
+        background-color: <%= page === 'active_page' ? 'var(--primary-accent)' : 'var(--dark-bg-tertiary)' %>;
         color: var(--text-primary);
     }
 </style>
-<nav class="admin-nav">
-    <a href="/admin" class="<%= typeof page !== 'undefined' && page === 'matches' ? 'active' : '' %>"><i class="fas fa-futbol"></i> Matches</a>
-    <a href="/admin/highlights" class="<%= typeof page !== 'undefined' && page === 'highlights' ? 'active' : '' %>"><i class="fas fa-star"></i> Highlights</a>
-</nav>
+<div class="admin-nav">
+    <a href="/admin" style="<%= page === 'matches' ? 'background-color: var(--primary-accent);' : '' %>"><i class="fas fa-futbol"></i> Matches</a>
+    <a href="/admin/highlights" style="<%= page === 'highlights' ? 'background-color: var(--primary-accent);' : '' %>"><i class="fas fa-star"></i> Highlights</a>
+    <a href="/admin/channels" style="<%= page === 'channels' ? 'background-color: var(--primary-accent);' : '' %>"><i class="fas fa-tv"></i> 24/7 Channels</a>
+</div>

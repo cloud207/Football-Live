@@ -235,6 +235,16 @@ footer {
     padding: 1rem;
 }
 
+/* For 24/7 Channel Cards */
+.channel-card-body {
+    justify-content: center !important; /* Center the single team-info div */
+}
+
+.match-section {
+    margin-bottom: 3rem;
+    margin-top: 3rem; /* Add space above the 24/7 channels section */
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     main {
@@ -398,6 +408,10 @@ footer {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(30, 144, 255, 0.2);
     border-color: #1e90ff;
+}
+
+.highlight-card:hover .play-overlay {
+    opacity: 1;
 }
 
 .highlight-card .overlay {

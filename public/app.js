@@ -296,4 +296,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Page စဖွင့်ဖွင့်ချင်း API ကို စခေါ်မယ်
     fetchHighlights();
+
+    // ===========================================
+    // === 24/7 CHANNELS LOGIC (အသစ်) ===
+    // ===========================================
+
+    const channelsGrid = document.getElementById('channels-grid');
+    const noChannelsMsg = document.getElementById('no-channels-msg');
+
+    async function fetchChannels() {
+        if (!channelsGrid) return;
+        try {
+            const response = await fetch('/api/channels');
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const channels = await response.json();
+            displayChannels(channels);
+
+        } catch (error) {
+            console.error('Failed to fetch 24/7 channels:', error);
+            channelsGrid.innerHTML = '<p style="color: red; text-align: center;">Failed to load channels.</p>';
+        }
+    }
+
+    function displayChannels(channels) {
+        if (!channelsGrid) return;
+        channelsGrid.innerHTML = '';
+
+        if (channels.length === 0) {
+            if (noChannelsMsg) noChannelsMsg.style.display = 'block';
+        } else {
+            if (noChannelsMsg) noChannelsMsg.style.display = 'none';
+
+            channels.forEach(channel => {
+                const channelCard = document.createElement('a');
+                channelCard.className = 'match-card'; // Re-use match-card style
+
+                // watch.html ကို data ပို့ရန် event listener
+                channelCard.href = 'watch.html';
+                channelCard.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    // Data တွေကို sessionStorage မှာ သိမ်းပါ
+                    sessionStorage.setItem('watch_data', JSON.stringify({
+                        title: channel.name,
+                        // Stream တစ်ခုတည်းသာ ရှိတဲ့အတွက် array of object အဖြစ် တည်ဆောက်
+                        streams: JSON.stringify([{ name: channel.name, url: channel.stream_url }])
+                    }));
+
+                    window.location.href = 'watch.html';
+                });
+
+                const logo = channel.logo_url || 'https://placehold.co/100x100/333/FFF?text=TV';
+
+                // Card HTML ဒီဇိုင်းကို Logo တွေနဲ့ ပြင်ဆင်သတ်မှတ်ခြင်း
+                channelCard.innerHTML = `
+                    <div class="card-body channel-card-body">
+                        <div class="team-info">
+                            <img src="${logo}" alt="${channel.name} Logo" class="team-logo">
+                            <span class="team-name">${channel.name}</span>
+                        </div>
+                    </div>
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                `;
+                
+                channelsGrid.appendChild(channelCard);
+            });
+        }
+    }
+
+    // Page စဖွင့်ဖွင့်ချင်း API ကို စခေါ်မယ်
+    fetchChannels();
+    // These channels don't change often, so no need for setInterval
 });

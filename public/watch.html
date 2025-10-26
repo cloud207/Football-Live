@@ -167,14 +167,16 @@
             // Video.js player ကို စတင် သတ်မှတ်မယ်
             const player = videojs('video-player');
 
-            // Highlight ဖြစ်နေရင် Stream Switcher ကို ဖျောက်ထားမယ်
-            const streamSwitcher = document.querySelector('.stream-switcher');
-            if (isHighlight && streamSwitcher) {
-                streamSwitcher.style.display = 'none';
-            }
-
             try {
                 const streams = JSON.parse(allStreamsJson);
+
+                // Highlight ဖြစ်နေရင် (သို့) Stream တစ်ခုတည်း/မရှိရင် Stream Switcher ကို ဖျောက်ထားမယ်
+                const streamSwitcher = document.querySelector('.stream-switcher');
+                if (isHighlight || !streams || streams.length <= 1) {
+                    if (streamSwitcher) {
+                        streamSwitcher.style.display = 'none';
+                    }
+                }
 
                 if (streams && streams.length > 0) {
 
@@ -182,7 +184,7 @@
                     defaultStreamUrl = streams[0].url;
                     
                     // 1. Stream Button တွေကို တည်ဆောက်မယ်
-                    if (!isHighlight) { // Highlight မဟုတ်မှသာ stream button တွေဆောက်မယ်
+                    if (!isHighlight && streams.length > 1) { // Highlight မဟုတ်ရင်၊ Stream တစ်ခုထက်ပိုမှသာ button တွေဆောက်မယ်
                         streams.forEach(stream => {
                             const button = document.createElement('button');
                             button.className = 'stream-btn';
