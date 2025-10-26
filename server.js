@@ -385,7 +385,12 @@ app.get('/admin/highlights/delete/:id', checkAuth, (req, res) => {
 
 // --- Public API Route (ဒါက Login မလိုပါ) ---
 app.get('/api/live_matches', (req, res) => {
-    const sql = "SELECT * FROM matches WHERE is_live = 1";
+    // FIX: is_live = 1 ကို တိုက်ရိုက်စစ်ဆေးမယ့်အစား၊ အချိန်ကိုပါ ထပ်စစ်ပါမယ်။
+    // Auto-live မဟုတ်တဲ့ ပွဲတွေအတွက် is_live=1 ဖြစ်နေရင်တောင် ပွဲချိန်မရောက်သေးရင် မပြသင့်ပါ။
+    const sql = `
+        SELECT * FROM matches 
+        WHERE is_live = 1 AND datetime(match_time) <= datetime('now', 'localtime')
+    `;
     db.all(sql, [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -403,8 +408,8 @@ app.get('/api/upcoming_matches', (req, res) => {
     const sql = `
         SELECT * FROM matches 
         WHERE 
-            is_live = 0 AND 
-            datetime(match_time) > datetime('now')
+            is_live = 0 AND
+            datetime(match_time) > datetime('now', 'localtime')
         ORDER BY match_time ASC
         LIMIT 10`; // (ပွဲတွေ အရမ်းများမနေအောင် ၁၀ ပွဲပဲ ကန့်သတ်ထားမယ်)
 
