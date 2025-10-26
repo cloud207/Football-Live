@@ -104,7 +104,7 @@ app.get('/admin', checkAuth, (req, res) => {
 // ပွဲစဉ်အသစ် ထည့်သွင်းခြင်း (checkAuth ထည့်ထား)
 app.post('/admin/add_match', checkAuth, (req, res) => {
     let { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
-    if (match_time) match_time = match_time + 'Z'; // Treat time as UTC
+    // if (match_time) match_time = match_time + 'Z'; // Treat time as UTC -> REMOVED
     const streamUrlsJson = buildStreamJson(req.body);
     
     // === FIX START ===
@@ -164,7 +164,7 @@ app.get('/admin/edit/:id', checkAuth, (req, res) => {
 app.post('/admin/edit/:id', checkAuth, (req, res) => {
     const id = req.params.id;
     let { team_a, team_b, league, match_time, team_a_logo, team_b_logo, auto_live } = req.body;
-    if (match_time) match_time = match_time + 'Z'; // Treat time as UTC
+    // if (match_time) match_time = match_time + 'Z'; // Treat time as UTC -> REMOVED
     const streamUrlsJson = buildStreamJson(req.body);
 
     // === FIX START ===
@@ -608,7 +608,7 @@ app.get('/api/channels', (req, res) => {
 // --- Auto-Live Scheduler ---
 // 1 မိနစ် (60000 ms) တိုင်း database ကို စစ်ဆေးပြီး ပွဲချိန်ရောက်ရင် Live ပြောင်းပေးမယ်
 setInterval(() => {
-    const now = new Date().toISOString(); // လက်ရှိအချိန်ကို ISO format နဲ့ ယူမယ်
+    const now = new Date(); // Use local server time
     const sql = `
         UPDATE matches
         SET is_live = 1
@@ -617,7 +617,7 @@ setInterval(() => {
             auto_live = 1 AND 
             datetime(match_time) <= datetime(?)
     `;
-    db.run(sql, [now], function(err) {
+    db.run(sql, [now.toISOString()], function(err) {
         if (err) {
             console.error('Auto-Live Scheduler Error:', err.message);
         } else if (this.changes > 0) {
